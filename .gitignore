@@ -1,0 +1,28 @@
+# Build directories
+build/
+bin/
+*.o
+*.a
+*.so
+*.out
+*.exe
+
+# Lab executables & test outputs
+/lab*/build/
+/lab*/*.o
+/lab*/*.out
+perf.data*
+
+# Editor & IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
