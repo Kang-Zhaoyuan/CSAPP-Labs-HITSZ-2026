@@ -1,0 +1,154 @@
+#include <sys/time.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <cmath>
+#include <sstream>
+#include <cassert>
+
+#include "gemm_kernel.h"
+
+using namespace std;
+
+
+static double gtod_ref_time_sec = 0.0;
+
+double dclock()
+{
+    double the_time, norm_sec;
+    struct timeval tv;
+
+    gettimeofday( &tv, NULL );
+
+    if ( abs(gtod_ref_time_sec) < 1e-15 )
+        gtod_ref_time_sec = ( double ) tv.tv_sec;
+
+    norm_sec = ( double ) tv.tv_sec - gtod_ref_time_sec;
+
+    the_time = norm_sec + tv.tv_usec * 1.0e-6;
+
+    return the_time;
+}
+
+
+void random_matrix( int m, int n, float *a)
+{
+    int i,j;
+
+    for ( i=0; i<m; i++ )
+        for ( j=0; j<n; j++ )
+            a[i*n+j]= 2.0 * (float)drand48( ) - 1.0 ;
+}
+
+double perform_gemm_baseline(unsigned iteration_times, int m, int n, int k) {
+    float *matrix_a = nullptr, *matrix_b = nullptr, *matrix_c = nullptr;
+    int i = 0;
+    double start=0, end=0;
+
+    matrix_a = new float[m * k];
+    random_matrix(m,k,matrix_a);
+    matrix_b = new float[k * n];
+    random_matrix(k, n,matrix_b);
+
+    matrix_c = new float[m * n];
+    memset((void *)matrix_c, 0, m * n * sizeof(float));
+
+    for (i = 0; i < 10; i++) {  // 使缓存热起来
+        gemm_kernel(matrix_c, matrix_a, matrix_b, m, n, k);
+    }
+
+    start = dclock();
+    for (i = 0; i < iteration_times; i ++) {  // 真实跑性能
+        gemm_kernel(matrix_c, matrix_a, matrix_b, m, n, k);
+    }
+    end = dclock();
+    delete [] matrix_a;
+    delete [] matrix_b;
+    delete [] matrix_c;
+    return end-start;
+}
+
+double perform_gemm_avx2_aligned(unsigned iteration_times, int m, int n, int k) {
+    float *matrix_a = nullptr, *matrix_b = nullptr, *matrix_c = nullptr;
+    int i = 0;
+    double start = 0, end = 0;
+
+    int ret_a = posix_memalign((void **)&matrix_a, 64, m * k * sizeof(float));
+    int ret_b = posix_memalign((void **)&matrix_b, 64, k * n * sizeof(float));
+    int ret_c = posix_memalign((void **)&matrix_c, 64, m * n * sizeof(float));
+    assert(ret_a == 0 && ret_b == 0 && ret_c == 0);
+
+    random_matrix(m, k, matrix_a);
+    random_matrix(k, n, matrix_b);
+    memset((void *)matrix_c, 0, m * n * sizeof(float));
+
+    for (i = 0; i < 10; i++) {
+        gemm_kernel_avx2_aligned(matrix_c, matrix_a, matrix_b, m, n, k);
+    }
+
+    start = dclock();
+    for (i = 0; i < iteration_times; i++) {
+        gemm_kernel_avx2_aligned(matrix_c, matrix_a, matrix_b, m, n, k);
+    }
+    end = dclock();
+
+    free(matrix_a);
+    free(matrix_b);
+    free(matrix_c);
+    return end - start;
+}
+
+int do_gemm(int m, int k, int n, double (*perform_gemm)(unsigned, int, int, int)) {
+
+    const int loops = 200;
+    double total_compute_time = 0;
+    double cost = 0;
+    double benchmark = 0;
+    double ops = 0;
+
+    cout << "GEMM performance info:"<<endl;
+    cout << "\t\t" << "M, K, N: "<< m << ", " << k << ", " << n << endl;
+
+    ops = (double)m * n  * k * 2 * 1.0e-09;
+    cout << "\t\t" << "Ops: " << ops << endl;
+
+    total_compute_time = perform_gemm(loops, m, n, k);
+
+    cost = total_compute_time / loops;
+    benchmark = ops / cost;
+
+    cout << "\t\t" << "Total compute time(s): " << total_compute_time  << endl;
+    cout << "\t\t" << "Cost(s): " << cost << endl;
+    cout << "\t\t" << "Benchmark(Gflops): " << benchmark << endl;
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 4) {
+        cout << "Usage: "<<argv[0]<<" <M> <K> <N>"<<endl;
+        return -1;
+    }
+
+    int M = 1024, K = 1024, N = 1024;  // 这个大小预取是有效果的
+
+    /**开始读取命令行参数**/
+    stringstream ss(argv[1]);
+    assert(ss >> M);
+    ss.str("");
+    ss.str(argv[2]);
+    ss.clear();
+    assert(ss >> K);
+    ss.str("");
+    ss.str(argv[3]);
+    ss.clear();
+    assert(ss >> N);
+    /**结束读取命令行参数**/
+
+    cout << "=== 基础基准测试 (x87 汇编 Baseline) ===" << endl;
+    do_gemm(M, K, N, perform_gemm_baseline);
+
+    cout << "\n=== 深度优化 (AVX2 + FMA SIMD 向量化 + 64字节对齐) ===" << endl;
+    do_gemm(M, K, N, perform_gemm_avx2_aligned);
+
+    return 0;
+}
