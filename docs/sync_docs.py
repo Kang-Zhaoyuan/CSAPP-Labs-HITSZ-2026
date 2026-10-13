@@ -167,14 +167,14 @@ def convert_html_to_md(html, page_url, lab_name):
 
 def sync_all():
     print("=" * 60)
-    print("🚀 开始全量同步与拉取计算机体系结构实验指导书...")
+    print("开始全量同步与拉取计算机体系结构实验指导书...")
     print("=" * 60)
     
     # 1. 获取网站索引
     index_json_url = f"https://{HOST_HEADER}/search/search_index.json"
     index_raw = fetch_url(index_json_url)
     if not index_raw:
-        print("❌ 无法获取 search_index.json，检查校园网连接。")
+        print("无法获取 search_index.json，检查校园网连接。")
         return
 
     index_data = json.loads(index_raw)
@@ -182,7 +182,7 @@ def sync_all():
     
     # 获取所有基础路径
     pages = sorted(list({d.get("location", "").split("#")[0] for d in docs}))
-    print(f"✅ 成功获取站点页面列表，共发现 {len(pages)} 个页面路径。")
+    print(f"成功获取站点页面列表，共发现 {len(pages)} 个页面路径。")
 
     # 按分类分组
     grouped = {} # group_name -> list of (location, sub_path)
@@ -226,14 +226,14 @@ def sync_all():
             target_dir = os.path.join(BASE_DIR, group_key)
             os.makedirs(target_dir, exist_ok=True)
 
-        print(f"\n📁 正在同步模块: [{group_key}] -> {target_dir}")
+        print(f"\n正在同步模块: [{group_key}] -> {target_dir}")
 
         section_entries = []
         for loc_idx, (loc, sub) in enumerate(items):
             page_url = f"https://{HOST_HEADER}/{loc}"
             html = fetch_url(page_url)
             if not html:
-                print(f"  ⚠️ 获取失败: {page_url}")
+                print(f"  获取失败: {page_url}")
                 continue
 
             # 下载页面中的图片
@@ -278,7 +278,7 @@ def sync_all():
             out_file = os.path.join(target_dir, fname)
             with open(out_file, 'w', encoding='utf-8') as fp:
                 fp.write(md_content)
-            print(f"  📝 [Markdown] {fname} ({title})")
+            print(f"  [Markdown] {fname} ({title})")
             section_entries.append((fname, title, md_content, page_url))
 
         # 生成该 Lab 的完整汇总 Markdown 与 PDF
@@ -306,12 +306,12 @@ def sync_all():
 
             with open(sum_md_path, 'w', encoding='utf-8') as fp:
                 fp.write("\n".join(lines))
-            print(f"  📚 [汇总版] {sum_md_name}")
+            print(f"  [汇总版] {sum_md_name}")
 
             all_labs_summary.append((lab_num, target_dir, section_entries))
 
     # 更新根目录 README.md
-    print("\n📄 正在更新根目录 README.md 索引...")
+    print("\n正在更新根目录 README.md 索引...")
     readme_lines = [
         "# 哈工大（深圳）计算机体系结构实验指导书（2026秋季）",
         "",
@@ -319,7 +319,7 @@ def sync_all():
         "",
         "---",
         "",
-        "## 📚 目录结构导航",
+        "## 目录结构导航",
         "",
         "### 0. 课程总体说明",
         "- [00_课程概况.md](./00_课程概况.md) （对应 PDF: [课程概况.pdf](./课程概况.pdf)）",
@@ -339,18 +339,18 @@ def sync_all():
     readme_lines.extend([
         "---",
         "",
-        "## 📌 Agent 使用提示",
+        "## Agent 使用提示",
         "- 每一份 Markdown 文档均包含 1:1 无损转译的理论知识、操作步骤、代码命令、参数配置及思考题说明。",
         "- 所有实验涉及的配图位于同级目录下的 `assets/` 文件夹中，支持离线预览。",
         "- 后续开发和调试任务时，Agent 可根据任务目标精确加载对应的 `0x_练习x.md` 文件，减少上下文负载。",
-        "- 💡 **更新与增量同步**：若网站更新了新实验（如实验4、5），只需在对话中发送 **“更新拉取一次”** 即可全自动拉取解析并生成对应文档。",
+        "- **更新与增量同步**：若网站更新了新实验，可运行 `python docs/sync_docs.py` 全自动拉取解析并生成对应文档。",
         ""
     ])
 
     with open(os.path.join(BASE_DIR, "README.md"), "w", encoding="utf-8") as fp:
         fp.write("\n".join(readme_lines))
 
-    print("\n🎉 全量同步与更新完成！")
+    print("\n全量同步与更新完成。")
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
