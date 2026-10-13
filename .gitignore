@@ -30,3 +30,14 @@ Thumbs.db
 # Local Agent documentation (do not push to Github)
 /README.md
 
+# Local Docker launch scripts & entrypoint
+/Start-CsappDocker.*
+/start_csapp_container.sh
+
+# Course textbook slides (local only)
+/Textbook/
+
+# Archives & redundant packages
+*.zip
+*.tar.gz
+

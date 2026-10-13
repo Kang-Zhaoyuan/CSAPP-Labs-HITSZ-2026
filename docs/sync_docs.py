@@ -7,7 +7,7 @@ import subprocess
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 
-BASE_DIR = r"D:\HIT\CSAPP\Lab\实验指导书"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EDGE_BIN = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 CAMPUS_IP = "10.249.12.224"
 HOST_HEADER = "arch.p.cs-lab.top"
