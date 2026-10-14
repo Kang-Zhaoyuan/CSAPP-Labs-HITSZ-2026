@@ -40,6 +40,12 @@ void random_matrix( int m, int n, float *a)
             a[i*n+j]= 2.0 * (float)drand48( ) - 1.0 ;
 }
 
+bool parse_dimension(const char *text, int &value)
+{
+    stringstream ss(text);
+    return (ss >> value) && ss.eof() && value > 0;
+}
+
 double perform_gemm_baseline(unsigned iteration_times, int m, int n, int k) {
     float *matrix_a = nullptr, *matrix_b = nullptr, *matrix_c = nullptr;
     int i = 0;
@@ -132,16 +138,12 @@ int main(int argc, char *argv[]) {
     int M = 1024, K = 1024, N = 1024;  // 这个大小预取是有效果的
 
     /**开始读取命令行参数**/
-    stringstream ss(argv[1]);
-    assert(ss >> M);
-    ss.str("");
-    ss.str(argv[2]);
-    ss.clear();
-    assert(ss >> K);
-    ss.str("");
-    ss.str(argv[3]);
-    ss.clear();
-    assert(ss >> N);
+    if (!parse_dimension(argv[1], M) ||
+        !parse_dimension(argv[2], K) ||
+        !parse_dimension(argv[3], N)) {
+        cerr << "Error: M, K, and N must be positive integers." << endl;
+        return -1;
+    }
     /**结束读取命令行参数**/
 
     cout << "=== 基础基准测试 (x87 汇编 Baseline) ===" << endl;
