@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "openmp_gemm.h"
@@ -66,6 +67,29 @@ TEST(openmp_gemm_opt, test0) {
     delete[] B;
     delete[] C;
     delete[] C_check;
+}
+
+TEST(openmp_gemm_opt, arbitrary_shape_padding) {
+    const int M = 3, N = 35, K = 5;
+    const int thread_num = 7;
+    std::vector<float> A(M * K), B(K * N), C(M * N, 0.0f), expected(M * N, 0.0f);
+
+    for (int i = 0; i < M * K; ++i) A[i] = static_cast<float>(i % 7) / 7.0f;
+    for (int i = 0; i < K * N; ++i) B[i] = static_cast<float>((i * 5) % 17) / 17.0f;
+
+    for (int m = 0; m < M; ++m) {
+        for (int n = 0; n < N; ++n) {
+            for (int k = 0; k < K; ++k) {
+                expected[m * N + n] += A[m * K + k] * B[k * N + n];
+            }
+        }
+    }
+
+    openmp_gemm_opt(thread_num, C.data(), A.data(), B.data(), M, N, K);
+
+    for (int i = 0; i < M * N; ++i) {
+        ASSERT_NEAR(C[i], expected[i], 1e-5);
+    }
 }
 
 TEST(openmp_gemm_opt, test1) {
