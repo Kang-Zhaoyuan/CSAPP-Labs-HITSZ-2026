@@ -3,11 +3,16 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
-#include <cassert>
 
 #include "openmp_gemm.h"
 
 using namespace std;
+
+bool parse_positive_integer(const char *text, int &value)
+{
+    stringstream ss(text);
+    return (ss >> value) && ss.eof() && value > 0;
+}
 
 
 static double gtod_ref_time_sec = 0.0;
@@ -134,20 +139,14 @@ int main(int argc, char *argv[]) {
     double baseline_benchmark = 0, opt_openmp_benchmark = 0;
 
     /**开始读取命令行参数**/
-    stringstream ss(argv[1]);
-    assert(ss >> thread_num);
-    ss.str("");
-    ss.str(argv[2]);
-    ss.clear();
-    assert(ss >> M);
-    ss.str("");
-    ss.str(argv[3]);
-    ss.clear();
-    assert(ss >> K);
-    ss.str("");
-    ss.str(argv[4]);
-    ss.clear();
-    assert(ss >> N);
+    if (!parse_positive_integer(argv[1], thread_num) ||
+        !parse_positive_integer(argv[2], M) ||
+        !parse_positive_integer(argv[3], K) ||
+        !parse_positive_integer(argv[4], N)) {
+        cerr << "Thread count and matrix dimensions must be positive integers."
+             << endl;
+        return -1;
+    }
     /**结束读取命令行参数**/
 
     cout << "--- Performance before openmp strategy optimization ---"<<endl;
