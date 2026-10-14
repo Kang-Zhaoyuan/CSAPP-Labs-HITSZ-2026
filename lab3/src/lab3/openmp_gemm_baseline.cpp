@@ -4,11 +4,16 @@
 #include <cstring>
 
 inline int get_parallel_thread_num(uint64_t M, uint64_t K, uint64_t N, int kernel_mr, int kernel_nr, int max_threads, int& m_thread, int& n_thread) {
-    m_thread = 2;
-    if (m_thread > max_threads) {
-        m_thread = max_threads;
-    }
+    (void)K;
+    (void)kernel_mr;
+    (void)kernel_nr;
+    if (max_threads < 1) max_threads = 1;
+    m_thread = (M > 1 && max_threads > 1) ? 2 : 1;
     n_thread = max_threads / m_thread;
+    if (N < static_cast<uint64_t>(n_thread)) {
+        n_thread = static_cast<int>(N);
+    }
+    if (n_thread < 1) n_thread = 1;
     return m_thread * n_thread;
 }
 

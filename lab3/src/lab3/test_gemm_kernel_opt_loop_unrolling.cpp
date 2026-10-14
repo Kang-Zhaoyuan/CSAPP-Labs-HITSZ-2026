@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "gemm_kernel_opt.h"
@@ -65,6 +66,28 @@ TEST(gemm_kernel_opt_loop_unrolling, test0) {
     delete[] B;
     delete[] C;
     delete[] C_check;
+}
+
+TEST(gemm_kernel_opt_loop_unrolling, odd_n_tail) {
+    const int M = 3, N = 5, K = 7;
+    std::vector<float> A(M * K), B(K * N), C(M * N, 0.0f), expected(M * N, 0.0f);
+
+    for (int i = 0; i < M * K; ++i) A[i] = static_cast<float>(i % 11) / 10.0f;
+    for (int i = 0; i < K * N; ++i) B[i] = static_cast<float>((i * 3) % 13) / 13.0f;
+
+    for (int m = 0; m < M; ++m) {
+        for (int n = 0; n < N; ++n) {
+            for (int k = 0; k < K; ++k) {
+                expected[m * N + n] += A[m * K + k] * B[k * N + n];
+            }
+        }
+    }
+
+    gemm_kernel_opt_loop_unrolling(C.data(), A.data(), B.data(), M, N, K);
+
+    for (int i = 0; i < M * N; ++i) {
+        ASSERT_NEAR(C[i], expected[i], 1e-5);
+    }
 }
 
 TEST(gemm_kernel_opt_loop_unrolling, test1) {

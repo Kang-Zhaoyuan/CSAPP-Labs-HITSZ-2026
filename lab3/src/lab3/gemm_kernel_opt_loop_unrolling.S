@@ -73,6 +73,14 @@ DO_LOOP_M:
     flds (MAT_A, mat_elem_idx, 4)     // 加载 A[m][k]
 
 DO_LOOP_N:
+    cmp DIM_N, loop_n
+    jge DO_LOOP_N_DONE
+
+    mov loop_n, %rax
+    inc %rax
+    cmp DIM_N, %rax
+    jge DO_LOOP_N_SCALAR
+
     mov DIM_N, %rax
     mul loop_k
     mov %rax, mat_elem_idx
@@ -108,8 +116,26 @@ DO_LOOP_N:
     // TODO 练习1: 请添加N维度的循环更新逻辑
     add $2, loop_n
 
-    cmp DIM_N, loop_n
-    jl DO_LOOP_N
+    jmp DO_LOOP_N
+
+DO_LOOP_N_SCALAR:
+    mov DIM_N, %rax
+    mul loop_k
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx
+    flds (MAT_B, mat_elem_idx, 4)
+    fmul %st(1), %st(0)
+
+    mov DIM_N, %rax
+    mul loop_m
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx
+    flds (MAT_C, mat_elem_idx, 4)
+    faddp %st, %st(1)
+    fstps (MAT_C, mat_elem_idx, 4)
+    add $1, loop_n
+
+DO_LOOP_N_DONE:
 
     fstp %st(0)                   // 仅弹出元素
     add $1, loop_m
@@ -130,5 +156,4 @@ gemm_kernel_opt_loop_unrolling:
 
 .section .note.GNU-stack,"",@progbits
     
-
 

@@ -9,11 +9,16 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
-#include <cassert>
 
 #include "gemm_kernel_opt.h"
 
 using namespace std;
+
+bool parse_dimension(const char *text, int &value)
+{
+    stringstream ss(text);
+    return (ss >> value) && ss.eof() && value > 0;
+}
 
 
 static double gtod_ref_time_sec = 0.0;
@@ -140,17 +145,18 @@ int main(int argc, char *argv[]) {
     double baseline_benchmark = 0, opt_avx_benchmark = 0;
 
     /**开始读取命令行参数**/
-    stringstream ss(argv[1]);
-    assert(ss >> M);
-    ss.str("");
-    ss.str(argv[2]);
-    ss.clear();
-    assert(ss >> K);
-    ss.str("");
-    ss.str(argv[3]);
-    ss.clear();
-    assert(ss >> N);
+    if (!parse_dimension(argv[1], M) ||
+        !parse_dimension(argv[2], K) ||
+        !parse_dimension(argv[3], N)) {
+        cerr << "Matrix dimensions must be positive integers." << endl;
+        return -1;
+    }
     /**结束读取命令行参数**/
+    if (M < 2 || M % 2 != 0 || N < 32 || N % 32 != 0) {
+        cerr << "AVX kernel requires M to be a positive multiple of 2 "
+             << "and N to be a positive multiple of 32." << endl;
+        return -1;
+    }
     cout << "--- Performance before avx optimization ---"<<endl;
     baseline_benchmark = do_gemm(M, K, N, perform_gemm_baseline);
     cout << "--- Performance for after avx optimization ---"<<endl;

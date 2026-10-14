@@ -3,11 +3,16 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
-#include <cassert>
 
 #include "gemm_kernel.h"
 
 using namespace std;
+
+bool parse_dimension(const char *text, int &value)
+{
+    stringstream ss(text);
+    return (ss >> value) && ss.eof() && value > 0;
+}
 
 
 static double gtod_ref_time_sec = 0.0;
@@ -103,16 +108,12 @@ int main(int argc, char *argv[]) {
     int M = 128, K = 128, N = 128;
 
     /**开始读取命令行参数**/
-    stringstream ss(argv[1]);
-    assert(ss >> M);
-    ss.str("");
-    ss.str(argv[2]);
-    ss.clear();
-    assert(ss >> K);
-    ss.str("");
-    ss.str(argv[3]);
-    ss.clear();
-    assert(ss >> N);
+    if (!parse_dimension(argv[1], M) ||
+        !parse_dimension(argv[2], K) ||
+        !parse_dimension(argv[3], N)) {
+        cerr << "Matrix dimensions must be positive integers." << endl;
+        return -1;
+    }
     /**结束读取命令行参数**/
     do_gemm(M, K, N, perform_gemm_baseline);
     return 0;
