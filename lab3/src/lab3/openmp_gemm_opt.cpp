@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <limits>
+#include <new>
 
 struct AlignedBuffer {
     float* ptr = nullptr;
@@ -14,9 +16,23 @@ struct AlignedBuffer {
 
     float* get(size_t count) {
         if (count > capacity) {
-            if (ptr) free(ptr);
-            capacity = count + 1024;
-            ptr = (float*)aligned_alloc(64, capacity * sizeof(float));
+            if (ptr) {
+                free(ptr);
+                ptr = nullptr;
+                capacity = 0;
+            }
+            if (count > (std::numeric_limits<size_t>::max() - 1024) ||
+                count + 1024 >
+                    (std::numeric_limits<size_t>::max() - 63) / sizeof(float)) {
+                throw std::bad_alloc();
+            }
+            const size_t requested_count = count + 1024;
+            const size_t requested_bytes = requested_count * sizeof(float);
+            const size_t aligned_bytes =
+                (requested_bytes + 63) / 64 * 64;
+            ptr = (float*)aligned_alloc(64, aligned_bytes);
+            if (!ptr) throw std::bad_alloc();
+            capacity = aligned_bytes / sizeof(float);
         }
         return ptr;
     }
@@ -31,11 +47,13 @@ static thread_local AlignedBuffer tls_C;
 static thread_local AlignedBuffer tls_A;
 
 inline int get_opt_thread_distribution(uint64_t M, uint64_t K, uint64_t N, int max_threads, int& m_thread, int& n_thread) {
-    m_thread = 2;
-    if (m_thread > max_threads) {
-        m_thread = max_threads;
-    }
+    (void)K;
+    if (max_threads < 1) max_threads = 1;
+    m_thread = (M > 1 && max_threads > 1) ? 2 : 1;
     n_thread = max_threads / m_thread;
+    if (N < static_cast<uint64_t>(n_thread)) {
+        n_thread = static_cast<int>(N);
+    }
     if (n_thread < 1) n_thread = 1;
     return m_thread * n_thread;
 }
