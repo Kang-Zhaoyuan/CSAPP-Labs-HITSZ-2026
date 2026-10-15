@@ -187,38 +187,58 @@
 .endm
 
 
+// Cache tiles: 64 rows x 64 columns. Each tile uses the existing
+// 2x32 AVX/FMA microkernel, accumulating all K values in 8 YMM registers.
+// As K is not split, every C value is loaded and stored once per call.
+// The OpenMP wrapper pads arbitrary M/N to the 2x32 kernel contract.
 .macro DO_GEMM
-    xor loop_n, loop_n
-DO_LOOP_N:
+    test DIM_M, DIM_M
+    jz AVX_DONE
+    test DIM_N, DIM_N
+    jz AVX_DONE
+    test DIM_K, DIM_K
+    jz AVX_DONE
 
-    xor loop_m, loop_m
-DO_LOOP_M:
-    // 装载矩阵C的数据
+    xor %rbx, %rbx                   // n0, 64-column tile start
+AVX_N_TILE:
+    xor %rbp, %rbp                   // m0, 64-row tile start
+AVX_M_TILE:
+    mov %rbx, loop_n
+AVX_N_MICRO:
+    mov %rbp, loop_m
+AVX_M_MICRO:
     LOAD_MAT_C
-
     xor loop_k, loop_k
-DO_LOOP_K:
-    // 装载矩阵A和矩阵B分块的数据
+AVX_K:
     LOAD_MAT_A
     LOAD_MAT_B
-
     DO_COMPUTE
-
-    add $1, loop_k              // kr=1
+    inc loop_k
     cmp DIM_K, loop_k
-    jl DO_LOOP_K
-
-    // 保存结果
+    jl AVX_K
     STORE_MAT_C
 
-    add $2, loop_m              // mr=2
+    add $2, loop_m                   // microkernel MR=2
     cmp DIM_M, loop_m
-    jl DO_LOOP_M
-
-    add $32, loop_n             // nr=32
+    jge AVX_NEXT_N
+    lea 64(%rbp), %rax
+    cmp %rax, loop_m
+    jl AVX_M_MICRO
+AVX_NEXT_N:
+    add $32, loop_n                  // microkernel NR=32
     cmp DIM_N, loop_n
-    jl DO_LOOP_N
-
+    jge AVX_NEXT_M_TILE
+    lea 64(%rbx), %rax
+    cmp %rax, loop_n
+    jl AVX_N_MICRO
+AVX_NEXT_M_TILE:
+    add $64, %rbp
+    cmp DIM_M, %rbp
+    jl AVX_M_TILE
+    add $64, %rbx
+    cmp DIM_N, %rbx
+    jl AVX_N_TILE
+AVX_DONE:
 .endm
 
 
@@ -228,6 +248,7 @@ gemm_kernel_opt_avx:
     GEMM_INIT
     DO_GEMM
     POPD
+    vzeroupper
     ret
 
 .section .note.GNU-stack,"",@progbits
