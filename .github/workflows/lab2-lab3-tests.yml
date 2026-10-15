@@ -29,3 +29,12 @@ jobs:
         run: cmake --build ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} --parallel 2
       - name: Run unit tests
         run: ctest --test-dir ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} --output-on-failure --no-tests=error
+
+      - name: Smoke test unroll sweep and chart
+        if: matrix.lab == 'lab3'
+        working-directory: ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }}
+        run: |
+          ./dist/bins/lab3_gemm_unroll_sweep 8 8 9
+          python3 "$GITHUB_WORKSPACE/lab3/tools/plot_unroll.py"
+          test -s unroll_sweep.csv
+          test -s unroll_sweep.svg
