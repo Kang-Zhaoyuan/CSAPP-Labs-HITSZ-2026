@@ -25,4 +25,5 @@ ELSE ()
     add_compile_options(-fPIC -g)
 ENDIF ()
 
+enable_testing()
 add_subdirectory(src/lab3)
