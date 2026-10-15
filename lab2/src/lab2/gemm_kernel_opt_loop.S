@@ -58,71 +58,78 @@
     xor loop_n, loop_n
 .endm
 
-/**
- * 练习3：基于循环重排 (m-n-k) 与 SSE 高精度双累加寄存器优化的高性能 Kernel
- * 1. 采用 m-n-k 循环结构，在内层循环将结果保存在寄存器中连续累加，彻底消除对矩阵 C 的高频重复读写；
- * 2. 采用指针连续步进 (Pointer Stepping) 消除乘法寻址开销，并结合主动预取指令；
- * 3. 采用 IEEE 754 标准双精度累加，与地面基准 (C_check) 达到 100% 严格精度匹配。
+/*
+ * Lab2 exercise 3: 32x32 M/N cache tiling around the scalar SSE microkernel.
+ * Traverse one narrow B-column block across a 32-row A/C block, reusing
+ * nearby B cache lines. K is fully reduced for each C element, so C is
+ * converted to float and stored only once; no rounding after partial K tiles.
+ * Edge tiles handle arbitrary positive M, N and K.
  */
 .macro DO_GEMM
-    // 计算 B 矩阵换行的跨度字节数: DIM_N * 4
+    test DIM_M, DIM_M
+    jz BLOCK_DONE
+    test DIM_N, DIM_N
+    jz BLOCK_DONE
+    test DIM_K, DIM_K
+    jz BLOCK_DONE
+
     mov DIM_N, %r15
-    shl $2, %r15
-
-    xor loop_m, loop_m
-
-DO_LOOP_M:
-    xor loop_n, loop_n
-
-DO_LOOP_N:
-    // 计算当前 C[m][n] 索引: m * N + n
+    shl $2, %r15                     // stride between B[k][n] and B[k+1][n]
+    xor %rbp, %rbp                    // n0: start column of 32-column tile
+BLOCK_N:
+    xor %rdx, %rdx                    // m0: start row of 32-row tile
+BLOCK_M:
+    mov %rdx, loop_m
+BLOCK_ROW:
+    mov %rbp, loop_n
+BLOCK_COL:
     mov loop_m, mat_elem_idx
     imul DIM_N, mat_elem_idx
     add loop_n, mat_elem_idx
+    cvtss2sd (MAT_C, mat_elem_idx, 4), %xmm0   // keep C[m][n] in double
 
-    // 加载当前 C[m][n] 到累加寄存器 %xmm0 (转换为 double 累加)
-    cvtss2sd (MAT_C, mat_elem_idx, 4), %xmm0
-
-    // 初始化 A[m][0] 指针到 %rax: MAT_A + (m * K) * 4
     mov loop_m, %rax
     imul DIM_K, %rax
-    shl $2, %rax
-    add MAT_A, %rax
-
-    // 初始化 B[0][n] 指针到 %rbx: MAT_B + n * 4
+    lea (MAT_A, %rax, 4), %rax        // &A[m][0]
     mov loop_n, %rbx
-    shl $2, %rbx
-    add MAT_B, %rbx
+    lea (MAT_B, %rbx, 4), %rbx        // &B[0][n]
 
     xor loop_k, loop_k
-
-DO_LOOP_K:
-    prefetcht0 64(%rax)
-    prefetcht0 64(%rbx)
-
-    movss (%rax), %xmm1                         // %xmm1 = A[m][k]
-    mulss (%rbx), %xmm1                         // %xmm1 = A[m][k] * B[k][n] (float)
-    cvtss2sd %xmm1, %xmm1                       // 转为 double 保证精度
-    addsd %xmm1, %xmm0                          // 累加到 %xmm0
-
-    add $4, %rax                                // A 前进 1 个 float
-    add %r15, %rbx                              // B 前进 1 行 (DIM_N * 4)
-
-    add $1, loop_k
+BLOCK_K:
+    movss (%rax), %xmm1
+    mulss (%rbx), %xmm1              // float product, matching reference
+    cvtss2sd %xmm1, %xmm1
+    addsd %xmm1, %xmm0
+    add $4, %rax
+    add %r15, %rbx
+    inc loop_k
     cmp DIM_K, loop_k
-    jl DO_LOOP_K
+    jl BLOCK_K
 
-    // 将累加和转换回 float 并存入 C[m][n]
     cvtsd2ss %xmm0, %xmm0
     movss %xmm0, (MAT_C, mat_elem_idx, 4)
 
-    add $1, loop_n
+    inc loop_n
     cmp DIM_N, loop_n
-    jl DO_LOOP_N
-
-    add $1, loop_m
+    jge BLOCK_NEXT_ROW
+    lea 32(%rbp), %rax
+    cmp %rax, loop_n
+    jl BLOCK_COL
+BLOCK_NEXT_ROW:
+    inc loop_m
     cmp DIM_M, loop_m
-    jl DO_LOOP_M
+    jge BLOCK_NEXT_M_TILE
+    lea 32(%rdx), %rax
+    cmp %rax, loop_m
+    jl BLOCK_ROW
+BLOCK_NEXT_M_TILE:
+    add $32, %rdx
+    cmp DIM_M, %rdx
+    jl BLOCK_M
+    add $32, %rbp
+    cmp DIM_N, %rbp
+    jl BLOCK_N
+BLOCK_DONE:
 .endm
 
 gemm_kernel_opt_loop:

@@ -88,6 +88,7 @@ target_include_directories(
 add_executable(
         lab3_gemm_opt_avx.unittest
         test_gemm_kernel_opt_avx.cpp
+        test_gemm_kernel_opt_avx_tiling.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/gemm_kernel_opt_avx.S
 )
 

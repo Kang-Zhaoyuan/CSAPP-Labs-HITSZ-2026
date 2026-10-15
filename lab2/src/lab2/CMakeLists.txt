@@ -63,6 +63,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
         lab2_gemm_kernel_opt_loop.unittest
         test_gemm_kernel_opt_loop.cpp
+        test_gemm_kernel_opt_loop_tiling.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/gemm_kernel_opt_loop.S
 )
 
