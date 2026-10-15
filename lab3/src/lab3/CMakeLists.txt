@@ -130,7 +130,34 @@ target_link_libraries(lab3_gemm_opt_openmp.unittest
         PUBLIC OpenMP::OpenMP_CXX)
 
 
+
+# Exercise 1, step 8: compare N-loop unroll factors 0, 2, 4 and 8.
+add_executable(
+        lab3_gemm_unroll_sweep
+        gemm_unroll_sweep.cpp
+        gemm_kernel_baseline.S
+        gemm_kernel_opt_loop_unrolling.S
+        gemm_kernel_opt_unroll_extra.S
+)
+target_include_directories(lab3_gemm_unroll_sweep
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_executable(
+        lab3_gemm_unroll_extra.unittest
+        test_gemm_unroll_extra.cpp
+        gemm_kernel_opt_unroll_extra.S
+)
+target_link_libraries(lab3_gemm_unroll_extra.unittest
+        PRIVATE gtest
+        PRIVATE gtest_main
+)
+target_include_directories(lab3_gemm_unroll_extra.unittest
+        PRIVATE ${gtest_SOURCE_DIR}/include
+)
+
 include(GoogleTest)
 gtest_discover_tests(lab3_gemm_opt_loop_unrolling.unittest)
 gtest_discover_tests(lab3_gemm_opt_avx.unittest)
 gtest_discover_tests(lab3_gemm_opt_openmp.unittest)
+gtest_discover_tests(lab3_gemm_unroll_extra.unittest)
