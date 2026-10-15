@@ -1,0 +1,31 @@
+name: Lab2 and Lab3 matrix kernel tests
+
+on:
+  pull_request:
+    paths:
+      - 'lab2/**'
+      - 'lab3/**'
+      - '.github/workflows/lab2-lab3-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        lab: [lab2, lab3]
+        build_type: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify CPU vector instructions
+        if: matrix.lab == 'lab3'
+        run: |
+          grep -qm1 ' avx ' /proc/cpuinfo
+          grep -qm1 ' fma ' /proc/cpuinfo
+      - name: Configure
+        run: cmake -S ${{ matrix.lab }} -B ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Build unit tests
+        run: cmake --build ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} --parallel 2
+      - name: Run unit tests
+        run: ctest --test-dir ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} --output-on-failure
