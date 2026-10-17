@@ -41,3 +41,8 @@ Thumbs.db
 *.zip
 *.tar.gz
 
+# Report drafting materials & student submissions (local only)
+/报告撰写用素材/
+/docs/templates/2024311150-*/
+/docs/templates/*.pdf
+/docs/templates/*Final_Version*

@@ -12,6 +12,29 @@ EDGE_BIN = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 CAMPUS_IP = "10.249.12.224"
 HOST_HEADER = "arch.p.cs-lab.top"
 
+try:
+    import pymupdf as fitz
+except ImportError:
+    try:
+        import fitz
+    except ImportError:
+        fitz = None
+
+def generate_pdf(url, out_path):
+    if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+        return True
+    cmd = [
+        EDGE_BIN,
+        "--headless=new",
+        "--disable-gpu",
+        "--run-all-compositor-stages-before-draw",
+        f"--print-to-pdf={out_path}",
+        "--no-pdf-header-footer",
+        url
+    ]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return os.path.exists(out_path) and os.path.getsize(out_path) > 0
+
 def fetch_url(url):
     cmd = [
         "curl.exe", "-s",
@@ -61,10 +84,9 @@ def convert_html_to_md(html, page_url, lab_name):
     for a in article.find_all('a', class_='headerlink'):
         a.decompose()
 
-    # Twemoji
+    # Strip decorative twemoji icons
     for img in article.find_all('img', class_='twemoji'):
-        alt = img.get('alt', '')
-        img.replace_with(alt)
+        img.decompose()
 
     # Protect code blocks
     code_placeholders = {}
@@ -200,7 +222,7 @@ def sync_all():
             grouped.setdefault("other", []).append((loc, loc))
 
     # 规范排序子章节
-    sub_order = ["overview", "theory", "step1", "step2", "step3", "step4", "step5", "report", "preview"]
+    sub_order = ["overview", "theory", "step", "step1", "step2", "step3", "step4", "step5", "report", "preview"]
     def sub_sort_key(item):
         sub = item[1]
         return sub_order.index(sub) if sub in sub_order else 99
@@ -264,6 +286,7 @@ def sync_all():
                 name_map = {
                     "overview": "00_实验概述.md",
                     "theory": "01_实验原理.md",
+                    "step": "02_实验步骤.md",
                     "step1": "02_练习1.md",
                     "step2": "03_练习2.md",
                     "step3": "04_练习3.md",
@@ -279,7 +302,41 @@ def sync_all():
             with open(out_file, 'w', encoding='utf-8') as fp:
                 fp.write(md_content)
             print(f"  [Markdown] {fname} ({title})")
-            section_entries.append((fname, title, md_content, page_url))
+            section_entries.append((fname, title, md_content, page_url, sub))
+
+            # 导出对应的 PDF（如果不存在）
+            if group_key.startswith("lab"):
+                lab_num = group_key.replace("lab", "")
+                pdf_name_map = {
+                    "overview": f"实验{lab_num}_实验概述.pdf",
+                    "theory": f"实验{lab_num}_实验原理.pdf",
+                    "step": f"实验{lab_num}_实验步骤.pdf",
+                    "step1": f"实验{lab_num}_实验步骤_练习1.pdf",
+                    "step2": f"实验{lab_num}_实验步骤_练习2.pdf",
+                    "step3": f"实验{lab_num}_实验步骤_练习3.pdf",
+                    "step4": f"实验{lab_num}_实验步骤_练习4.pdf",
+                    "step5": f"实验{lab_num}_实验步骤_练习5.pdf",
+                    "report": f"实验{lab_num}_实验报告要求.pdf",
+                    "preview": f"实验{lab_num}_预习下一个实验.pdf",
+                }
+                pdf_fname = pdf_name_map.get(sub, f"实验{lab_num}_{sub}.pdf")
+                pdf_out = os.path.join(target_dir, pdf_fname)
+                if not os.path.exists(pdf_out):
+                    # Check legacy hyphen format
+                    legacy_names = [
+                        pdf_fname.replace("_", "-"),
+                        f"实验{lab_num}-概述.pdf" if sub == "overview" else "",
+                        f"实验{lab_num}-实验步骤{sub.replace('step', '')}.pdf" if sub.startswith("step") else "",
+                    ]
+                    found = False
+                    for leg in legacy_names:
+                        if leg and os.path.exists(os.path.join(target_dir, leg)):
+                            pdf_out = os.path.join(target_dir, leg)
+                            found = True
+                            break
+                    if not found:
+                        print(f"  [PDF] 正在导出 {pdf_fname} ...")
+                        generate_pdf(page_url, pdf_out)
 
         # 生成该 Lab 的完整汇总 Markdown 与 PDF
         if group_key.startswith("lab"):
@@ -295,11 +352,11 @@ def sync_all():
                 "## 目录导航",
                 ""
             ]
-            for fn, tit, _, _ in section_entries:
+            for fn, tit, _, _, _ in section_entries:
                 lines.append(f"- [{tit}](./{fn})")
             lines.append("\n---\n")
 
-            for fn, tit, cnt, _ in section_entries:
+            for fn, tit, cnt, _, _ in section_entries:
                 lines.append(f"<!-- Section: {fn} -->")
                 lines.append(cnt)
                 lines.append("\n---\n")
@@ -307,6 +364,20 @@ def sync_all():
             with open(sum_md_path, 'w', encoding='utf-8') as fp:
                 fp.write("\n".join(lines))
             print(f"  [汇总版] {sum_md_name}")
+
+            sum_pdf_name = f"实验{lab_num}指导书汇总.pdf"
+            sum_pdf_path = os.path.join(target_dir, sum_pdf_name)
+            if not os.path.exists(sum_pdf_path) and fitz:
+                part_pdfs = [os.path.join(target_dir, pdf_name_map.get(s, f"实验{lab_num}_{s}.pdf")) for _, _, _, _, s in section_entries]
+                doc = fitz.open()
+                for p in part_pdfs:
+                    if os.path.exists(p):
+                        sub_doc = fitz.open(p)
+                        doc.insert_pdf(sub_doc)
+                        sub_doc.close()
+                doc.save(sum_pdf_path)
+                doc.close()
+                print(f"  [汇总PDF] {sum_pdf_name}")
 
             all_labs_summary.append((lab_num, target_dir, section_entries))
 
@@ -331,7 +402,7 @@ def sync_all():
     for lab_num, ldir, sections in all_labs_summary:
         readme_lines.append(f"### {lab_num}. 实验{lab_num}")
         readme_lines.append("- **章节指导书**：")
-        for fn, tit, _, _ in sections:
+        for fn, tit, _, _, _ in sections:
             readme_lines.append(f"  - [{fn}](./实验{lab_num}/{fn}) （{tit}）")
         readme_lines.append(f"- **完整汇总版**：[实验{lab_num}指导书汇总.md](./实验{lab_num}/实验{lab_num}指导书汇总.md)")
         readme_lines.append("")
