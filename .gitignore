@@ -33,6 +33,7 @@ Thumbs.db
 # Local Docker launch scripts & entrypoint
 /Start-CsappDocker.*
 /start_csapp_container.sh
+/docker-compose.yml
 
 # Course textbook slides (local only)
 /Textbook/
@@ -46,3 +47,4 @@ Thumbs.db
 /docs/templates/2024311150-*/
 /docs/templates/*.pdf
 /docs/templates/*Final_Version*
+/docs/templates/src/

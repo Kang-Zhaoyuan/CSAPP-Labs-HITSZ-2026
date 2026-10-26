@@ -36,23 +36,20 @@ def generate_pdf(url, out_path):
     return os.path.exists(out_path) and os.path.getsize(out_path) > 0
 
 def fetch_url(url):
-    cmd = [
-        "curl.exe", "-s",
-        "--connect-to", f"{HOST_HEADER}:443:{CAMPUS_IP}:443",
-        url
-    ]
+    cmd = ["curl.exe", "-s"]
+    if HOST_HEADER in url:
+        cmd += ["--connect-to", f"{HOST_HEADER}:443:{CAMPUS_IP}:443"]
+    cmd.append(url)
     res = subprocess.run(cmd, capture_output=True)
     if res.returncode != 0:
         return None
     return res.stdout.decode("utf-8", errors="ignore")
 
 def fetch_binary(url, out_path):
-    cmd = [
-        "curl.exe", "-s",
-        "--connect-to", f"{HOST_HEADER}:443:{CAMPUS_IP}:443",
-        "-o", out_path,
-        url
-    ]
+    cmd = ["curl.exe", "-s"]
+    if HOST_HEADER in url:
+        cmd += ["--connect-to", f"{HOST_HEADER}:443:{CAMPUS_IP}:443"]
+    cmd += ["-o", out_path, url]
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return os.path.exists(out_path) and os.path.getsize(out_path) > 0
 
@@ -284,16 +281,16 @@ def sync_all():
                 fname = "00_课程概况.md" if sub == "overview" else "01_作业提交说明.md"
             else:
                 name_map = {
-                    "overview": "00_实验概述.md",
-                    "theory": "01_实验原理.md",
-                    "step": "02_实验步骤.md",
-                    "step1": "02_练习1.md",
-                    "step2": "03_练习2.md",
-                    "step3": "04_练习3.md",
-                    "step4": "05_练习4.md",
-                    "step5": "06_练习5.md",
-                    "report": "05_实验报告要求.md" if len(items) <= 7 else "07_实验报告要求.md",
-                    "preview": f"{len(items)-1:02d}_预习下一个实验.md",
+                    "overview": f"{loc_idx:02d}_实验概述.md",
+                    "theory": f"{loc_idx:02d}_实验原理.md",
+                    "step": f"{loc_idx:02d}_实验步骤.md",
+                    "step1": f"{loc_idx:02d}_练习1.md",
+                    "step2": f"{loc_idx:02d}_练习2.md",
+                    "step3": f"{loc_idx:02d}_练习3.md",
+                    "step4": f"{loc_idx:02d}_练习4.md",
+                    "step5": f"{loc_idx:02d}_练习5.md",
+                    "report": f"{loc_idx:02d}_实验报告要求.md",
+                    "preview": f"{loc_idx:02d}_预习下一个实验.md",
                 }
                 fname = name_map.get(sub, f"{loc_idx:02d}_{sub}.md")
 
@@ -381,6 +378,26 @@ def sync_all():
 
             all_labs_summary.append((lab_num, target_dir, section_entries))
 
+    # 检查并同步实验报告模板
+    tmpl_dir = os.path.join(BASE_DIR, "templates")
+    os.makedirs(tmpl_dir, exist_ok=True)
+    file_station_url = "http://10.249.14.10:3011/"
+    try:
+        raw_station = fetch_url(file_station_url)
+        if raw_station:
+            soup_station = BeautifulSoup(raw_station, 'html.parser')
+            for a in soup_station.find_all('a'):
+                href = a.get('href', '')
+                if href.endswith('.docx') and '模板' in href:
+                    from urllib.parse import unquote
+                    tmpl_name = unquote(href)
+                    dst = os.path.join(tmpl_dir, tmpl_name)
+                    if not os.path.exists(dst):
+                        print(f"  [报告模板] 正在下载 {tmpl_name} ...")
+                        fetch_binary(f"{file_station_url}{href}", dst)
+    except Exception as e:
+        print(f"检查下载站报告模板失败: {e}")
+
     # 更新根目录 README.md
     print("\n正在更新根目录 README.md 索引...")
     readme_lines = [
@@ -396,6 +413,7 @@ def sync_all():
         "- [00_课程概况.md](./00_课程概况.md) （对应 PDF: [课程概况.pdf](./课程概况.pdf)）",
         "- [01_作业提交说明.md](./01_作业提交说明.md) （对应 PDF: [作业提交说明.pdf](./作业提交说明.pdf)）",
         "- 参考资料: [x86-64-reference.pdf](./x86-64-reference.pdf)",
+        "- 报告模板: [1 CPU优化专题（实验1~3）报告模板.docx](./templates/1%20CPU优化专题（实验1~3）报告模板.docx) | [2 GPU优化专题（实验4~5）报告模板.docx](./templates/2%20GPU优化专题（实验4~5）报告模板.docx)",
         ""
     ]
 
