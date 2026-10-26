@@ -1,4 +1,4 @@
-# Build directories
+# Build directories & artifacts
 build/
 bin/
 *.o
@@ -6,12 +6,10 @@ bin/
 *.so
 *.out
 *.exe
-
-# Lab executables & test outputs
-/lab*/build/
-/lab*/*.o
-/lab*/*.out
+/labs/lab*/build/
 perf.data*
+unroll_sweep.csv
+unroll_sweep.svg
 
 # Editor & IDE
 .vscode/
@@ -27,24 +25,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Local documentation (do not push to Github)
-/README_LOCAL.md
-
-# Local Docker launch scripts & entrypoint
-/Start-CsappDocker.*
-/start_csapp_container.sh
-/docker-compose.yml
-
-# Course textbook slides (local only)
-/Textbook/
-
-# Archives & redundant packages
+# Archives
 *.zip
 *.tar.gz
 
-# Report drafting materials & student submissions (local only)
+# Local-only workspace directories & documentation (excluded from GitHub)
+/README_LOCAL.md
+/docker/
+/Textbook/
 /报告撰写用素材/
-/docs/templates/2024311150-*/
-/docs/templates/*.pdf
-/docs/templates/*Final_Version*
-/docs/templates/src/

@@ -160,6 +160,16 @@ def convert_html_to_md(html, page_url, lab_name):
         admonition_placeholders[pid] = rendered_adm
         adm.replace_with(soup.new_string(f'\n\n{pid}\n\n'))
 
+    # Fix internal relative links
+    for a in article.find_all('a'):
+        href = a.get('href', '')
+        if href == '../../#1':
+            a['href'] = '../00_课程总览/00_课程概况.md'
+        elif href.startswith('../../lab1/theory'):
+            a['href'] = '../实验1/01_实验原理.md'
+        elif href == '../assets/x87.pdf':
+            a.unwrap()
+
     # Fix image links
     for img in article.find_all('img'):
         src = img.get('src', '')
@@ -233,7 +243,8 @@ def sync_all():
 
     for group_key, items in sorted(grouped.items()):
         if group_key == "root":
-            target_dir = BASE_DIR
+            target_dir = os.path.join(BASE_DIR, "00_课程总览")
+            os.makedirs(target_dir, exist_ok=True)
             os.makedirs(os.path.join(target_dir, "assets"), exist_ok=True)
             os.makedirs(os.path.join(target_dir, "homewk.assets"), exist_ok=True)
         elif group_key.startswith("lab"):
@@ -260,14 +271,16 @@ def sync_all():
             article = soup.find('article', class_='md-content__inner')
             if article:
                 for img_tag in article.find_all('img'):
+                    if 'twemoji' in (img_tag.get('class') or []):
+                        continue
                     src = img_tag.get('src')
                     if src and not src.startswith('data:'):
                         img_name = src.split('?')[0].split('/')[-1]
                         if 'timetbl' in img_name:
-                            dst = os.path.join(BASE_DIR, 'assets', img_name)
+                            dst = os.path.join(target_dir, 'assets', img_name)
                             img_url = f"https://{HOST_HEADER}/timetbl.png"
                         elif 'homewk.assets' in src or 'homewk' in loc:
-                            dst = os.path.join(BASE_DIR, 'homewk.assets', img_name)
+                            dst = os.path.join(target_dir, 'homewk.assets', img_name)
                             img_url = f"https://{HOST_HEADER}/homewk.assets/{img_name}"
                         else:
                             dst = os.path.join(target_dir, 'assets', img_name)
@@ -401,38 +414,27 @@ def sync_all():
     # 更新根目录 README.md
     print("\n正在更新根目录 README.md 索引...")
     readme_lines = [
-        "# 哈工大（深圳）计算机体系结构实验指导书（2026秋季）",
+        "# 计算机体系结构实验指导书（2026秋季）",
         "",
-        "本目录包含完整的课程实验指导书，分为 **PDF 离线版** 与 **Markdown 1:1 结构化转译版**，并已下载所有插图与实验素材，支持完全离线查看。",
-        "",
-        "---",
-        "",
-        "## 目录结构导航",
-        "",
-        "### 0. 课程总体说明",
-        "- [00_课程概况.md](./00_课程概况.md) （对应 PDF: [课程概况.pdf](./课程概况.pdf)）",
-        "- [01_作业提交说明.md](./01_作业提交说明.md) （对应 PDF: [作业提交说明.pdf](./作业提交说明.pdf)）",
-        "- 参考资料: [x86-64-reference.pdf](./x86-64-reference.pdf)",
+        "### 0. 课程总览与模板",
+        "- [00_课程概况.md](./00_课程总览/00_课程概况.md)（PDF: [课程概况.pdf](./00_课程总览/课程概况.pdf)）",
+        "- [01_作业提交说明.md](./00_课程总览/01_作业提交说明.md)（PDF: [作业提交说明.pdf](./00_课程总览/作业提交说明.pdf)）",
+        "- 参考手册: [x86-64-reference.pdf](./00_课程总览/x86-64-reference.pdf)",
         "- 报告模板: [1 CPU优化专题（实验1~3）报告模板.docx](./templates/1%20CPU优化专题（实验1~3）报告模板.docx) | [2 GPU优化专题（实验4~5）报告模板.docx](./templates/2%20GPU优化专题（实验4~5）报告模板.docx)",
         ""
     ]
 
     for lab_num, ldir, sections in all_labs_summary:
         readme_lines.append(f"### {lab_num}. 实验{lab_num}")
-        readme_lines.append("- **章节指导书**：")
         for fn, tit, _, _, _ in sections:
-            readme_lines.append(f"  - [{fn}](./实验{lab_num}/{fn}) （{tit}）")
-        readme_lines.append(f"- **完整汇总版**：[实验{lab_num}指导书汇总.md](./实验{lab_num}/实验{lab_num}指导书汇总.md)")
+            readme_lines.append(f"- [{fn}](./实验{lab_num}/{fn})（{tit}）")
+        readme_lines.append(f"- 汇总版：[实验{lab_num}指导书汇总.md](./实验{lab_num}/实验{lab_num}指导书汇总.md) | [实验{lab_num}指导书汇总.pdf](./实验{lab_num}/实验{lab_num}指导书汇总.pdf)")
         readme_lines.append("")
 
     readme_lines.extend([
         "---",
         "",
-        "## Agent 使用提示",
-        "- 每一份 Markdown 文档均包含 1:1 无损转译的理论知识、操作步骤、代码命令、参数配置及思考题说明。",
-        "- 所有实验涉及的配图位于同级目录下的 `assets/` 文件夹中，支持离线预览。",
-        "- 后续开发和调试任务时，Agent 可根据任务目标精确加载对应的 `0x_练习x.md` 文件，减少上下文负载。",
-        "- **更新与增量同步**：若网站更新了新实验，可运行 `python docs/sync_docs.py` 全自动拉取解析并生成对应文档。",
+        "同步命令：`python docs/sync_docs.py`",
         ""
     ])
 

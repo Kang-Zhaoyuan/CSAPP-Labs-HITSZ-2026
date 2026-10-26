@@ -1,23 +1,35 @@
 # 计算机体系结构实验（CSAPP / Architecture Labs）
 
-哈尔滨工业大学（深圳）计算机体系结构课程实验工程。
+哈尔滨工业大学（深圳）计算机体系结构课程实验仓库。
 
-## 目录结构
+## 仓库目录树
 
-- `lab1/` - 实验一：浮点矩阵乘法与 SIMD 向量化
-- `lab2/` - 实验二：存储层次与 Cache 优化
-- `lab3/` - 实验三：指令级并行与 OpenMP 多线程优化
-- `docs/` - 实验指导书与实验报告模板
+```text
+.
+├── labs/
+│   ├── lab1/              # 实验1：x87 浮点矩阵乘法与 AVX2/FMA 向量化
+│   ├── lab2/              # 实验2：Cache 软件预取、循环重排与 32x32 分块
+│   ├── lab3/              # 实验3：x87 循环展开扫描、AVX 64x64 分块与 OpenMP
+│   └── lab4-5/            # 实验4~5：CUDA 矩阵乘法与 Shared Memory 分块优化
+└── docs/
+    ├── 00_课程总览/       # 课程大纲、作业提交说明与 x86-64 参考手册
+    ├── 实验1/ ~ 实验5/    # 各实验离线指导书（Markdown / PDF / 配图）
+    ├── templates/         # 官方空白实验报告模板
+    ├── README.md          # 指导书索引
+    └── sync_docs.py       # 指导书与模板增量同步脚本
+```
 
 ## 构建与测试
 
-各 `lab*` 均为独立的 CMake 工程，依赖 Linux x86-64 环境（需支持 AVX2、FMA 指令集扩展及 OpenMP）。
-
-```bash
-cd <lab-dir>
-cmake -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
+- `labs/lab1` ~ `labs/lab3`（Linux x86-64，需支持 AVX2/FMA 与 OpenMP）：
+  ```bash
+  cmake -S labs/<lab-name> -B labs/<lab-name>/build -DCMAKE_BUILD_TYPE=Release
+  cmake --build labs/<lab-name>/build
+  ctest --test-dir labs/<lab-name>/build --output-on-failure
+  ```
+- `labs/lab4-5`（CUDA 环境，需按目标 GPU 修改 [`labs/lab4-5/compile.sh`](labs/lab4-5/compile.sh) 中的 `-arch=compute_XX`）：
+  ```bash
+  cd labs/lab4-5 && bash compile.sh && ./a.out 1 1000
+  ```
 
 实验指导书详见 [`docs/README.md`](docs/README.md)。

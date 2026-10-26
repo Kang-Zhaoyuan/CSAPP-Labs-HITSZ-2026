@@ -18,14 +18,14 @@
 
 - 宿主机多容器共存：
   - 操作系统实验容器：`qemu-ubuntu`，宿主机端口 `2222`，SSH 别名 `os-lab-docker`
-  - 体系结构实验容器：`csapp-env`，宿主机端口 `2224`，SSH 别名 `csapp-docker`
+  - 体系结构实验容器：`csapp-env`，宿主机端口 `2224`，SSH 别名 `csapp-docker`（编排与启动脚本位于 [`./docker/`](docker/)）
 - 破坏性命令限制：严禁在宿主机执行 `docker stop $(docker ps -aq)` 或 `docker rm -f $(docker ps -aq)` 等全局操作，以免中断其他实验容器。
-- 目录映射：宿主机 `D:\HIT\CSAPP` 挂载至容器内部 `/workspace`。
+- 目录映射：当前工作区根目录 `.` 挂载至容器内部 `/workspace`（各实验代码位于 `/workspace/labs/lab*`）。
 
 ## 3. 硬件计数器要求
 
-- perf 性能计数器与 Cache 数据采集在虚拟机或 WSL 下失真，评测数据需在独立 Linux 环境或支持 PMU 的容器下运行。
+- `perf` 性能计数器与 Cache 数据采集在虚拟机或 WSL 下失真，评测数据需在独立 Linux 环境或支持 PMU 的容器下运行。
 
 ## 4. 指导书同步机制
 
-- 运行 `python docs/sync_docs.py` 会请求 `arch.p.cs-lab.top/search/search_index.json`，动态更新 `docs/` 下的章节指导书与素材。
+- 运行 `python docs/sync_docs.py` 会请求 `arch.p.cs-lab.top/search/search_index.json` 与 `10.249.14.10:3011`，动态更新 [`./docs/`](docs/) 下的章节指导书、配图与报告模板。

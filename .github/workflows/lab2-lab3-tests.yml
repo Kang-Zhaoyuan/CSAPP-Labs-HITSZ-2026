@@ -3,8 +3,8 @@ name: Lab2 and Lab3 matrix kernel tests
 on:
   pull_request:
     paths:
-      - 'lab2/**'
-      - 'lab3/**'
+      - 'labs/lab2/**'
+      - 'labs/lab3/**'
       - '.github/workflows/lab2-lab3-tests.yml'
   workflow_dispatch:
 
@@ -24,7 +24,7 @@ jobs:
           grep -qm1 ' avx ' /proc/cpuinfo
           grep -qm1 ' fma ' /proc/cpuinfo
       - name: Configure
-        run: cmake -S ${{ matrix.lab }} -B ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S labs/${{ matrix.lab }} -B ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
       - name: Build unit tests
         run: cmake --build ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} --parallel 2
       - name: Run unit tests
@@ -35,6 +35,6 @@ jobs:
         working-directory: ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }}
         run: |
           ./dist/bins/lab3_gemm_unroll_sweep 8 8 9
-          python3 "$GITHUB_WORKSPACE/lab3/tools/plot_unroll.py"
+          python3 "$GITHUB_WORKSPACE/labs/lab3/tools/plot_unroll.py"
           test -s unroll_sweep.csv
           test -s unroll_sweep.svg
