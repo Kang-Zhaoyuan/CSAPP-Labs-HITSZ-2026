@@ -27,7 +27,7 @@
   cmake --build labs/<lab-name>/build
   ctest --test-dir labs/<lab-name>/build --output-on-failure
   ```
-- `labs/lab4-5`（CUDA 环境，需按目标 GPU 修改 [`labs/lab4-5/compile.sh`](labs/lab4-5/compile.sh) 中的 `-arch=compute_XX`）：
+- `labs/lab4-5`（Ubuntu + NVIDIA CUDA 环境，详见 [运行说明](labs/lab4-5/README.md)）：
   ```bash
   cd labs/lab4-5 && bash compile.sh && ./a.out 1 1000
   ```
