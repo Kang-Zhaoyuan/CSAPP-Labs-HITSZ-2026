@@ -1,0 +1,40 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 2K of event 'cycles'
+# Event count (approx.): 108783449666
+#
+# Overhead  Symbol                            IPC   [IPC Coverage]
+# ........  ................................  ....................
+#
+    97.95%  [.] matmul                        -      -            
+            |
+            ---forward
+               generate
+               main
+               __libc_start_main
+
+     1.17%  [.] forward                       -      -            
+            |
+            ---generate
+               main
+               __libc_start_main
+
+     0.22%  [k] pick_link                     -      -            
+     0.17%  [.] __expf_fma                    -      -            
+     0.13%  [.] softmax                       -      -            
+     0.09%  [.] __powf_fma                    -      -            
+     0.09%  [.] sample_argmax                 -      -            
+     0.04%  [.] __memset_avx2_unaligned_erms  -      -            
+     0.04%  [k] clear_page_erms               -      -            
+     0.04%  [k] sysvec_apic_timer_interrupt   -      -            
+     0.04%  [k] hrtimer_active                -      -            
+     0.00%  [k] nmi_handle                    -      -            
+     0.00%  [k] native_write_msr              -      -            
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

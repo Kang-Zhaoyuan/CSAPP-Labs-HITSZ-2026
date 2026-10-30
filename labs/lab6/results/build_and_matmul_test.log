@@ -1,0 +1,28 @@
+========== Lab6 Build and Correctness Test ==========
+========== 1. Build Baseline ==========
+gcc -O3 -o run run.c -lm
+gcc -O3 -o runq runq.c -lm
+========== 2. Build AVX2 + OpenMP ==========
+gcc -O3 -mavx2 -fopenmp -ffp-contract=off -DUSE_AVX2 -o run-opt run.c -lm
+========== 3. Test Matrix Multiplication ==========
+gcc -O3 -mavx2 -fopenmp -ffp-contract=off -DUSE_AVX2 -o test-matmul test_matmul.c -lm
+OMP_NUM_THREADS=4 ./test-matmul
+PASS n=1 d=1
+PASS n=7 d=5
+PASS n=8 d=8
+PASS n=9 d=13
+PASS n=31 d=17
+PASS n=32 d=32
+PASS n=33 d=9
+PASS n=64 d=288
+PASS n=288 d=288
+PASS n=768 d=288
+PASS n=288 d=768
+PASS n=1376 d=512
+All 12 matmul cases passed bitwise comparison.
+========== 4. Check Executables ==========
+run:         ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=293f30b6eb693870a5bb1e3ccbb6727c13aab446, for GNU/Linux 3.2.0, not stripped
+runq:        ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=6d240e045ae9f70056404411b84417d2a866f614, for GNU/Linux 3.2.0, not stripped
+run-opt:     ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=38b1500f9880fa49fa629c75c1171672533ddc77, for GNU/Linux 3.2.0, not stripped
+test-matmul: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3fe7d42bb075b7abd663a16d82567f63402ed068, for GNU/Linux 3.2.0, not stripped
+========== BUILD AND TEST COMPLETED ==========

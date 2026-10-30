@@ -69,4 +69,4 @@ perf 数据会受虚拟机、WSL、容器权限和 PMU 访问能力影响。正�
 
 ## 5. 产物
 
-benchmark_results.csv、perf.data*、perf.svg、perf.report.txt 和本目录下的编译产物均为本地生成文件，不应提交到 Git。
+正式实验结果统一归档至 results/ 并允许提交 Git，包括 benchmark CSV、测试日志、环境信息、矩阵尺寸记录、perf 原始采样数据、调用栈文本、折叠栈、符号报告及 FlameGraph SVG。模型权重和编译产物仍不提交；大体积下载过程日志保留在本地。results/README.md 记录测试配置、数据来源和分析口径。

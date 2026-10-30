@@ -1,0 +1,5 @@
+matmul shape: W(512 x 512) * x(512) -> y(512)
+matmul shape: W(1376 x 512) * x(512) -> y(1376)
+matmul shape: W(512 x 1376) * x(1376) -> y(512)
+matmul shape: W(32000 x 512) * x(512) -> y(32000)
+achieved tok/s: 28.000000

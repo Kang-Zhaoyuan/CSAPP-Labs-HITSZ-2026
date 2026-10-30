@@ -1,0 +1,7 @@
+matmul shape: W(768 x 768) * x(768) -> y(768)
+matmul shape: W(2048 x 768) * x(768) -> y(2048)
+matmul shape: W(768 x 2048) * x(2048) -> y(768)
+matmul shape: W(32000 x 768) * x(768) -> y(32000)
+achieved tok/s: 10.478912
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.225 MB /home/lenovo/CA-Lab/lab6-results/perf_110M.data (2281 samples) ]

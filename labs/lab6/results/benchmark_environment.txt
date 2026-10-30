@@ -1,0 +1,14 @@
+2026-10-30T12:21:40+08:00
+Git commit:
+58a0ac66ffbfc879a75c89edf78a66def3a368d3
+CPU:
+每个核的线程数：                 2
+每个座的核数：                   8
+型号名称：                       Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz
+Compiler:
+gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+OpenMP threads: 8
+Generation steps: 256
+Repetitions: 5
+Seed: 42
+Temperature: 0.0

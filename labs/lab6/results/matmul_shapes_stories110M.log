@@ -1,0 +1,5 @@
+matmul shape: W(768 x 768) * x(768) -> y(768)
+matmul shape: W(2048 x 768) * x(768) -> y(2048)
+matmul shape: W(768 x 2048) * x(2048) -> y(768)
+matmul shape: W(32000 x 768) * x(768) -> y(32000)
+achieved tok/s: 10.590015

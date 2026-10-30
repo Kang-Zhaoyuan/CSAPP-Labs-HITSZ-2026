@@ -1,0 +1,22 @@
+stories15M.bin run 1/5: Baseline 82.03 tok/s, AVX2+OpenMP 515.15 tok/s, 6.280x; text identical
+stories15M.bin run 2/5: Baseline 83.24 tok/s, AVX2+OpenMP 524.94 tok/s, 6.306x; text identical
+stories15M.bin run 3/5: Baseline 82.56 tok/s, AVX2+OpenMP 527.45 tok/s, 6.389x; text identical
+stories15M.bin run 4/5: Baseline 83.40 tok/s, AVX2+OpenMP 547.03 tok/s, 6.559x; text identical
+stories15M.bin run 5/5: Baseline 82.46 tok/s, AVX2+OpenMP 531.25 tok/s, 6.442x; text identical
+stories42M.bin run 1/5: Baseline 27.71 tok/s, AVX2+OpenMP 209.03 tok/s, 7.545x; text identical
+stories42M.bin run 2/5: Baseline 27.69 tok/s, AVX2+OpenMP 208.62 tok/s, 7.534x; text identical
+stories42M.bin run 3/5: Baseline 27.71 tok/s, AVX2+OpenMP 196.86 tok/s, 7.105x; text identical
+stories42M.bin run 4/5: Baseline 27.72 tok/s, AVX2+OpenMP 206.40 tok/s, 7.446x; text identical
+stories42M.bin run 5/5: Baseline 27.68 tok/s, AVX2+OpenMP 206.20 tok/s, 7.448x; text identical
+stories110M.bin run 1/5: Baseline 10.49 tok/s, AVX2+OpenMP 77.00 tok/s, 7.342x; text identical
+stories110M.bin run 2/5: Baseline 10.54 tok/s, AVX2+OpenMP 76.95 tok/s, 7.302x; text identical
+stories110M.bin run 3/5: Baseline 10.47 tok/s, AVX2+OpenMP 77.00 tok/s, 7.352x; text identical
+stories110M.bin run 4/5: Baseline 10.49 tok/s, AVX2+OpenMP 77.07 tok/s, 7.348x; text identical
+stories110M.bin run 5/5: Baseline 10.47 tok/s, AVX2+OpenMP 76.90 tok/s, 7.344x; text identical
+
+Report-ready summary (mean of each variant):
+Model                  Baseline tok/s   Optimized tok/s    Speedup
+stories15M.bin                  82.74            529.16     6.396x
+stories42M.bin                  27.70            205.42     7.416x
+stories110M.bin                 10.49             76.98     7.337x
+Per-run data written to /home/lenovo/CA-Lab/lab6-results/benchmark_formal.csv

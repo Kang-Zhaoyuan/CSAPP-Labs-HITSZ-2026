@@ -1,0 +1,10 @@
+stories15M.bin run 1/1: Baseline 83.33 tok/s, AVX2+OpenMP 543.86 tok/s, 6.526x; text identical
+stories42M.bin run 1/1: Baseline 28.18 tok/s, AVX2+OpenMP 208.05 tok/s, 7.383x; text identical
+stories110M.bin run 1/1: Baseline 10.61 tok/s, AVX2+OpenMP 77.50 tok/s, 7.305x; text identical
+
+Report-ready summary (mean of each variant):
+Model                  Baseline tok/s   Optimized tok/s    Speedup
+stories15M.bin                  83.33            543.86     6.526x
+stories42M.bin                  28.18            208.05     7.383x
+stories110M.bin                 10.61             77.50     7.305x
+Per-run data written to /home/lenovo/CA-Lab/lab6-results/benchmark_smoke.csv
