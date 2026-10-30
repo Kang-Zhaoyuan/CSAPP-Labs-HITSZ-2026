@@ -1,4 +1,4 @@
-# 计算机体系结构实验（CSAPP / Architecture Labs）
+# 计算机体系结构实验
 
 哈尔滨工业大学（深圳）计算机体系结构课程实验仓库。
 
@@ -20,7 +20,7 @@
     └── sync_docs.py       # 指导书与模板增量同步脚本
 ```
 
-## 各模块构建与评测
+## 构建说明
 
 - **Lab 1 ~ 3（CPU 优化）**：标准 CMake 工程，需支持 AVX2、FMA 与 OpenMP。
   ```bash
@@ -32,9 +32,9 @@
   ```bash
   cd labs/lab4-5 && bash compile.sh lab5 16 && ./a.out 1 1000
   ```
-- **Lab 6（Llama 模型推理优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/OPTIMIZATION.md`](labs/lab6/OPTIMIZATION.md)。
+- **Lab 6（Llama 优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/OPTIMIZATION.md`](labs/lab6/OPTIMIZATION.md)。
   ```bash
   cd labs/lab6 && make runopt && python3 benchmark.py --runs 3 --steps 256
   ```
 
-实验指导书导航详见 [`docs/README.md`](docs/README.md)。
+指导书导航详见 [`docs/README.md`](docs/README.md)。
