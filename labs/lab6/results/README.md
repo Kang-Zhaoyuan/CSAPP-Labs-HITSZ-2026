@@ -4,7 +4,7 @@
 
 ## 推理性能
 
-Baseline 为标量 `run`，优化版为 AVX2 + OpenMP `run-opt`；内核实现见 [OPTIMIZATION.md](../OPTIMIZATION.md)。
+Baseline 为标量 `run`，优化版为 AVX2 + OpenMP `run-opt`；内核实现见 [README.md](../README.md)。
 
 | Checkpoint | Baseline (tok/s) | AVX2 + OpenMP (tok/s) | Speedup |
 |---|---:|---:|---:|
