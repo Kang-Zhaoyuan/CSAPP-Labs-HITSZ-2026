@@ -13,7 +13,7 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_MODELS = ("stories15M.bin", "stories42M.bin", "stories110M.bin")
-RATE_RE = re.compile(rb"achieved tok/s:\\s*([0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?\\d+)?)")
+RATE_RE = re.compile(rb"achieved tok/s:\s*([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?\d+)?)")
 
 
 def run_once(binary, model, args, env):
@@ -31,7 +31,7 @@ def run_once(binary, model, args, env):
     match = RATE_RE.search(result.stderr)
     if not match:
         detail = result.stderr.decode("utf-8", errors="replace")
-        raise RuntimeError(f"{binary.name} did not report tok/s for {model.name}:\\n{detail}")
+        raise RuntimeError(f"{binary.name} did not report tok/s for {model.name}:\n{detail}")
     rate = float(match.group(1))
     digest = hashlib.sha256(result.stdout).hexdigest()
     return rate, result.stdout, digest
@@ -115,7 +115,7 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    print("\\nReport-ready summary (mean of each variant):")
+    print("\nReport-ready summary (mean of each variant):")
     print(f"{'Model':<20} {'Baseline tok/s':>16} {'Optimized tok/s':>17} {'Speedup':>10}")
     for name, base_mean, opt_mean, speedup in summaries:
         print(f"{name:<20} {base_mean:>16.2f} {opt_mean:>17.2f} {speedup:>9.3f}x")

@@ -16,7 +16,7 @@ static int test_shape(int n, int d) {
     float *expected = malloc((size_t)d * sizeof(float));
     float *actual = malloc((size_t)d * sizeof(float));
     if (!x || !w || !expected || !actual) {
-        fprintf(stderr, "allocation failed for n=%d d=%d\\n", n, d);
+        fprintf(stderr, "allocation failed for n=%d d=%d\n", n, d);
         free(x);
         free(w);
         free(expected);
@@ -45,13 +45,13 @@ static int test_shape(int n, int d) {
     if (!passed) {
         for (int i = 0; i < d; ++i) {
             if (memcmp(expected + i, actual + i, sizeof(float)) != 0) {
-                fprintf(stderr, "FAIL n=%d d=%d row=%d expected=%.9g actual=%.9g\\n",
+                fprintf(stderr, "FAIL n=%d d=%d row=%d expected=%.9g actual=%.9g\n",
                         n, d, i, expected[i], actual[i]);
                 break;
             }
         }
     } else {
-        printf("PASS n=%d d=%d\\n", n, d);
+        printf("PASS n=%d d=%d\n", n, d);
     }
 
     free(x);
@@ -76,6 +76,6 @@ int main(void) {
         }
     }
 
-    printf("All %zu matmul cases passed bitwise comparison.\\n", count);
+    printf("All %zu matmul cases passed bitwise comparison.\n", count);
     return EXIT_SUCCESS;
 }

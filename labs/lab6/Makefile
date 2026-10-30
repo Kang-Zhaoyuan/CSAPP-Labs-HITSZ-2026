@@ -91,7 +91,7 @@ runprofile: run.c
 .PHONY: testmatmul
 testmatmul: test_matmul.c run.c
 	$(CC) $(OPT_FLAGS) -DUSE_AVX2 -o test-matmul test_matmul.c -lm
-	OMP_NUM_THREADS=4 ./test-matmul
+	OMP_NUM_THREADS=${OMP_NUM_THREADS:-4} ./test-matmul
 
 .PHONY: clean
 clean:

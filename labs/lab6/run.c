@@ -232,7 +232,7 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
         }
     }
     if (!found && traced_count < 16) {
-        fprintf(stderr, "matmul shape: W(%d x %d) * x(%d) -> y(%d)\\n", d, n, n, d);
+        fprintf(stderr, "matmul shape: W(%d x %d) * x(%d) -> y(%d)\n", d, n, n, d);
         traced_n[traced_count] = n;
         traced_d[traced_count] = d;
         ++traced_count;
