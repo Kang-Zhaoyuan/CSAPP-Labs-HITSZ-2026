@@ -1,0 +1,146 @@
+========== METHOD=lab5 TILE_WIDTH=8 ==========
+matrix_mul_lab5.cu(208): warning: variable "alpha" was declared but never referenced
+
+matrix_mul_lab5.cu(209): warning: variable "beta" was declared but never referenced
+
+----- N=256 MODE=lab5 TILE_WIDTH=8 -----
+Method: shared, N=256, TILE_WIDTH=8
+Kernel Elapsed Time: 1.373 ms
+Performance= 24.44 GFlop/s, Time= 1.373 msec, Size= 33554432 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=512 MODE=lab5 TILE_WIDTH=8 -----
+Method: shared, N=512, TILE_WIDTH=8
+Kernel Elapsed Time: 11.460 ms
+Performance= 23.42 GFlop/s, Time= 11.460 msec, Size= 268435456 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1000 MODE=lab5 TILE_WIDTH=8 -----
+Method: shared, N=1000, TILE_WIDTH=8
+Kernel Elapsed Time: 84.587 ms
+Performance= 23.64 GFlop/s, Time= 84.587 msec, Size= 2000000000 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1024 MODE=lab5 TILE_WIDTH=8 -----
+Method: shared, N=1024, TILE_WIDTH=8
+Kernel Elapsed Time: 92.204 ms
+Performance= 23.29 GFlop/s, Time= 92.204 msec, Size= 2147483648 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+========== METHOD=lab5 TILE_WIDTH=16 ==========
+matrix_mul_lab5.cu(208): warning: variable "alpha" was declared but never referenced
+
+matrix_mul_lab5.cu(209): warning: variable "beta" was declared but never referenced
+
+----- N=256 MODE=lab5 TILE_WIDTH=16 -----
+Method: shared, N=256, TILE_WIDTH=16
+Kernel Elapsed Time: 0.782 ms
+Performance= 42.94 GFlop/s, Time= 0.782 msec, Size= 33554432 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=512 MODE=lab5 TILE_WIDTH=16 -----
+Method: shared, N=512, TILE_WIDTH=16
+Kernel Elapsed Time: 6.478 ms
+Performance= 41.44 GFlop/s, Time= 6.478 msec, Size= 268435456 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1000 MODE=lab5 TILE_WIDTH=16 -----
+Method: shared, N=1000, TILE_WIDTH=16
+Kernel Elapsed Time: 51.702 ms
+Performance= 38.68 GFlop/s, Time= 51.702 msec, Size= 2000000000 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1024 MODE=lab5 TILE_WIDTH=16 -----
+Method: shared, N=1024, TILE_WIDTH=16
+Kernel Elapsed Time: 50.090 ms
+Performance= 42.87 GFlop/s, Time= 50.090 msec, Size= 2147483648 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+========== METHOD=lab5 TILE_WIDTH=32 ==========
+matrix_mul_lab5.cu(208): warning: variable "alpha" was declared but never referenced
+
+matrix_mul_lab5.cu(209): warning: variable "beta" was declared but never referenced
+
+----- N=256 MODE=lab5 TILE_WIDTH=32 -----
+Method: shared, N=256, TILE_WIDTH=32
+Kernel Elapsed Time: 0.611 ms
+Performance= 54.90 GFlop/s, Time= 0.611 msec, Size= 33554432 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=512 MODE=lab5 TILE_WIDTH=32 -----
+Method: shared, N=512, TILE_WIDTH=32
+Kernel Elapsed Time: 4.950 ms
+Performance= 54.23 GFlop/s, Time= 4.950 msec, Size= 268435456 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1000 MODE=lab5 TILE_WIDTH=32 -----
+Method: shared, N=1000, TILE_WIDTH=32
+Kernel Elapsed Time: 40.998 ms
+Performance= 48.78 GFlop/s, Time= 40.998 msec, Size= 2000000000 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1024 MODE=lab5 TILE_WIDTH=32 -----
+Method: shared, N=1024, TILE_WIDTH=32
+Kernel Elapsed Time: 39.480 ms
+Performance= 54.39 GFlop/s, Time= 39.480 msec, Size= 2147483648 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+========== METHOD=cublas TILE_WIDTH=16 ==========
+matrix_mul_lab5.cu(201): warning: variable "block" was declared but never referenced
+
+----- N=256 MODE=cublas TILE_WIDTH=16 -----
+Method: cublas, N=256, TILE_WIDTH=16
+Kernel Elapsed Time: 0.148 ms
+Performance= 226.04 GFlop/s, Time= 0.148 msec, Size= 33554432 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=512 MODE=cublas TILE_WIDTH=16 -----
+Method: cublas, N=512, TILE_WIDTH=16
+Kernel Elapsed Time: 1.030 ms
+Performance= 260.55 GFlop/s, Time= 1.030 msec, Size= 268435456 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1000 MODE=cublas TILE_WIDTH=16 -----
+Method: cublas, N=1000, TILE_WIDTH=16
+Kernel Elapsed Time: 6.559 ms
+Performance= 304.95 GFlop/s, Time= 6.559 msec, Size= 2000000000 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
+----- N=1024 MODE=cublas TILE_WIDTH=16 -----
+Method: cublas, N=1024, TILE_WIDTH=16
+Kernel Elapsed Time: 5.932 ms
+Performance= 361.99 GFlop/s, Time= 5.932 msec, Size= 2147483648 Ops
+Computing result using host CPU...done.
+Listing first 100 differences (abs/rel tolerance 0.000010)...
+ 
+  Total Errors = 0
