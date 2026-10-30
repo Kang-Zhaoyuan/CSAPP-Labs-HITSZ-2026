@@ -32,7 +32,7 @@
   ```bash
   cd labs/lab4-5 && bash compile.sh lab5 16 && ./a.out 1 1000
   ```
-- **Lab 6（Llama 模型推理优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/README.md`](labs/lab6/README.md)。
+- **Lab 6（Llama 模型推理优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/OPTIMIZATION.md`](labs/lab6/OPTIMIZATION.md)。
   ```bash
   cd labs/lab6 && make runopt && python3 benchmark.py --runs 3 --steps 256
   ```
