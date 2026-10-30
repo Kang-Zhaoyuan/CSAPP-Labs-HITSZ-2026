@@ -85,6 +85,34 @@ def convert_html_to_md(html, page_url, lab_name):
     for img in article.find_all('img', class_='twemoji'):
         img.decompose()
 
+    # Fix internal relative links across entire article
+    for a in article.find_all('a'):
+        href = a.get('href', '')
+        if href == '../../#1':
+            a['href'] = '../00_课程总览/00_课程概况.md'
+        elif href.startswith('../../lab1/theory'):
+            a['href'] = '../实验1/01_实验原理.md'
+        elif href == '../assets/x87.pdf':
+            a.unwrap()
+        elif '3%20Llama' in href or '3 Llama' in href:
+            a['href'] = '../templates/3 Llama测试（实验6）报告模板.docx'
+        elif '2%20GPU' in href or '2 GPU' in href:
+            a['href'] = '../templates/2 GPU优化专题（实验4~5）报告模板.docx'
+        elif '1%20CPU' in href or '1 CPU' in href:
+            a['href'] = '../templates/1 CPU优化专题（实验1~3）报告模板.docx'
+
+    # Fix image links across entire article
+    for img in article.find_all('img'):
+        src = img.get('src', '')
+        if src:
+            fname = src.split('?')[0].split('/')[-1]
+            if 'homewk.assets' in src or 'homewk' in page_url:
+                img['src'] = f'./homewk.assets/{fname}'
+            elif 'timetbl.png' in src:
+                img['src'] = f'./assets/{fname}'
+            else:
+                img['src'] = f'./assets/{fname}'
+
     # Protect code blocks
     code_placeholders = {}
     code_idx = 0
@@ -137,17 +165,6 @@ def convert_html_to_md(html, page_url, lab_name):
         if title_elem:
             title_elem.decompose()
 
-        for sub_hl in adm.find_all('table', class_='highlighttable'):
-            c_td = sub_hl.find('td', class_='code')
-            if c_td:
-                c_text = c_td.get_text().rstrip('\r\n')
-                l = detect_lang(c_text)
-                sub_pre = soup.new_tag('pre')
-                sub_code = soup.new_tag('code')
-                sub_code.string = f'```{l}\n{c_text}\n```'
-                sub_pre.append(sub_code)
-                sub_hl.replace_with(sub_pre)
-
         inner_md = md(str(adm), heading_style='ATX').strip()
         alert_header = f'> [!{adm_type}] **{title_text}**' if title_text else f'> [!{adm_type}]'
         lines = [alert_header, '>']
@@ -160,35 +177,17 @@ def convert_html_to_md(html, page_url, lab_name):
         admonition_placeholders[pid] = rendered_adm
         adm.replace_with(soup.new_string(f'\n\n{pid}\n\n'))
 
-    # Fix internal relative links
-    for a in article.find_all('a'):
-        href = a.get('href', '')
-        if href == '../../#1':
-            a['href'] = '../00_课程总览/00_课程概况.md'
-        elif href.startswith('../../lab1/theory'):
-            a['href'] = '../实验1/01_实验原理.md'
-        elif href == '../assets/x87.pdf':
-            a.unwrap()
-
-    # Fix image links
-    for img in article.find_all('img'):
-        src = img.get('src', '')
-        if src:
-            fname = src.split('?')[0].split('/')[-1]
-            if 'homewk.assets' in src or 'homewk' in page_url:
-                img['src'] = f'./homewk.assets/{fname}'
-            elif 'timetbl.png' in src:
-                img['src'] = f'./assets/{fname}'
-            else:
-                img['src'] = f'./assets/{fname}'
-
     # Convert to Markdown
     res_md = md(str(article), heading_style='ATX', bullets='-')
 
-    # Restore placeholders
-    for pid, block in code_placeholders.items():
-        res_md = res_md.replace(pid, block)
+    # Restore admonitions first
     for pid, block in admonition_placeholders.items():
+        res_md = res_md.replace(pid, block)
+
+    # Restore code blocks (with blockquote prefix if inside an admonition)
+    for pid, block in code_placeholders.items():
+        quoted_block = '\n'.join(f'> {line}' if line else '>' for line in block.split('\n'))
+        res_md = res_md.replace(f'> {pid}', quoted_block).replace(f'>{pid}', quoted_block)
         res_md = res_md.replace(pid, block)
 
     res_md = re.sub(r'\n{3,}', '\n\n', res_md).strip() + '\n'
@@ -420,7 +419,7 @@ def sync_all():
         "- [00_课程概况.md](./00_课程总览/00_课程概况.md)（PDF: [课程概况.pdf](./00_课程总览/课程概况.pdf)）",
         "- [01_作业提交说明.md](./00_课程总览/01_作业提交说明.md)（PDF: [作业提交说明.pdf](./00_课程总览/作业提交说明.pdf)）",
         "- 参考手册: [x86-64-reference.pdf](./00_课程总览/x86-64-reference.pdf)",
-        "- 报告模板: [1 CPU优化专题（实验1~3）报告模板.docx](./templates/1%20CPU优化专题（实验1~3）报告模板.docx) | [2 GPU优化专题（实验4~5）报告模板.docx](./templates/2%20GPU优化专题（实验4~5）报告模板.docx)",
+        "- 报告模板: [1 CPU优化专题（实验1~3）报告模板.docx](./templates/1%20CPU优化专题（实验1~3）报告模板.docx) | [2 GPU优化专题（实验4~5）报告模板.docx](./templates/2%20GPU优化专题（实验4~5）报告模板.docx) | [3 Llama测试（实验6）报告模板.docx](./templates/3%20Llama测试（实验6）报告模板.docx)",
         ""
     ]
 

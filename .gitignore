@@ -34,3 +34,6 @@ Thumbs.db
 /docker/
 /Textbook/
 /报告撰写用素材/
+
+# Lab 6 large model weights (exceed GitHub file size limits)
+/labs/lab6/stories*.bin

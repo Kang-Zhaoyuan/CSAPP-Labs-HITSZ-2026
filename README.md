@@ -10,10 +10,11 @@
 │   ├── lab1/              # 实验1：x87 浮点矩阵乘法与 AVX2/FMA 向量化
 │   ├── lab2/              # 实验2：Cache 软件预取、循环重排与 32x32 分块
 │   ├── lab3/              # 实验3：x87 循环展开扫描、AVX 64x64 分块与 OpenMP
-│   └── lab4-5/            # 实验4~5：CUDA 矩阵乘法与 Shared Memory 分块优化
+│   ├── lab4-5/            # 实验4~5：CUDA 矩阵乘法与 Shared Memory 分块优化
+│   └── lab6/              # 实验6：Llama2 模型推理性能评测与矩阵乘法优化
 └── docs/
     ├── 00_课程总览/       # 课程大纲、作业提交说明与 x86-64 参考手册
-    ├── 实验1/ ~ 实验5/    # 各实验离线指导书（Markdown / PDF / 配图）
+    ├── 实验1/ ~ 实验6/    # 各实验离线指导书（Markdown / PDF / 配图）
     ├── templates/         # 官方空白实验报告模板
     ├── README.md          # 指导书索引
     └── sync_docs.py       # 指导书与模板增量同步脚本
@@ -27,9 +28,16 @@
   cmake --build labs/<lab-name>/build
   ctest --test-dir labs/<lab-name>/build --output-on-failure
   ```
-- `labs/lab4-5`（Ubuntu + NVIDIA CUDA 环境，详见 [运行说明](labs/lab4-5/README.md)）：
+- `labs/lab4-5`（CUDA 环境，按目标 GPU 修改 [`labs/lab4-5/compile.sh`](labs/lab4-5/compile.sh) 中的 `-arch=compute_XX`）：
   ```bash
   cd labs/lab4-5 && bash compile.sh && ./a.out 1 1000
+  ```
+- `labs/lab6`（Llama2 模型推理与矩阵乘法优化，权重文件不入库）：
+  ```bash
+  cd labs/lab6
+  python download_models.py stories15M.bin   # 从校园内网下载权重（15M / 42M / 110M）
+  make run                                  # 编译并运行推理
+  ./run stories15M.bin -n 20
   ```
 
 实验指导书详见 [`docs/README.md`](docs/README.md)。
