@@ -2,7 +2,7 @@
 
 哈尔滨工业大学（深圳）计算机体系结构课程实验仓库。
 
-## 仓库目录树
+## 目录结构
 
 ```text
 .
@@ -20,24 +20,21 @@
     └── sync_docs.py       # 指导书与模板增量同步脚本
 ```
 
-## 构建与测试
+## 各模块构建与评测
 
-- `labs/lab1` ~ `labs/lab3`（Linux x86-64，需支持 AVX2/FMA 与 OpenMP）：
+- **Lab 1 ~ 3（CPU 优化）**：标准 CMake 工程，需支持 AVX2、FMA 与 OpenMP。
   ```bash
-  cmake -S labs/<lab-name> -B labs/<lab-name>/build -DCMAKE_BUILD_TYPE=Release
-  cmake --build labs/<lab-name>/build
-  ctest --test-dir labs/<lab-name>/build --output-on-failure
+  cmake -S labs/<lab> -B labs/<lab>/build -DCMAKE_BUILD_TYPE=Release
+  cmake --build labs/<lab>/build
+  ctest --test-dir labs/<lab>/build --output-on-failure
   ```
-- `labs/lab4-5`（CUDA 环境，按目标 GPU 修改 [`labs/lab4-5/compile.sh`](labs/lab4-5/compile.sh) 中的 `-arch=compute_XX`）：
+- **Lab 4 ~ 5（GPU 优化）**：CUDA 矩阵乘法与共享内存优化，详见 [`labs/lab4-5/README.md`](labs/lab4-5/README.md)。
   ```bash
-  cd labs/lab4-5 && bash compile.sh && ./a.out 1 1000
+  cd labs/lab4-5 && bash compile.sh lab5 16 && ./a.out 1 1000
   ```
-- `labs/lab6`（Llama2 模型推理与矩阵乘法优化，权重文件不入库）：
+- **Lab 6（Llama 模型推理优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/OPTIMIZATION.md`](labs/lab6/OPTIMIZATION.md)。
   ```bash
-  cd labs/lab6
-  python download_models.py stories15M.bin   # 从校园内网下载权重（15M / 42M / 110M）
-  make run                                  # 编译并运行推理
-  ./run stories15M.bin -n 20
+  cd labs/lab6 && make runopt && python3 benchmark.py --runs 3 --steps 256
   ```
 
-实验指导书详见 [`docs/README.md`](docs/README.md)。
+实验指导书导航详见 [`docs/README.md`](docs/README.md)。
