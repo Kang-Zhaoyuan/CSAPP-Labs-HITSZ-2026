@@ -5,6 +5,9 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#if defined(USE_AVX2)
+#include <immintrin.h>
+#endif
 #include <string.h>
 #include <fcntl.h>
 #if defined _WIN32
@@ -216,7 +219,52 @@ void softmax(float* x, int size) {
 
 void matmul(float* xout, float* x, float* w, int n, int d) {
     // W (d,n) @ x (n,) -> xout (d,)
-    // by far the most amount of time is spent inside this little function
+#ifdef MATMUL_TRACE
+    // Report each distinct runtime shape once, without printing in the hot loop.
+    static int traced_n[16];
+    static int traced_d[16];
+    static int traced_count;
+    int found = 0;
+    for (int k = 0; k < traced_count; ++k) {
+        if (traced_n[k] == n && traced_d[k] == d) {
+            found = 1;
+            break;
+        }
+    }
+    if (!found && traced_count < 16) {
+        fprintf(stderr, "matmul shape: W(%d x %d) * x(%d) -> y(%d)\\n", d, n, n, d);
+        traced_n[traced_count] = n;
+        traced_d[traced_count] = d;
+        ++traced_count;
+    }
+#endif
+
+#ifdef USE_AVX2
+    // Each SIMD lane accumulates one output row. The inner j loop remains
+    // sequential, preserving the scalar accumulation order for every result.
+    const __m256i row_offsets = _mm256_setr_epi32(0, n, 2*n, 3*n, 4*n, 5*n, 6*n, 7*n);
+    #pragma omp parallel for
+    for (int i = 0; i < d; i += 8) {
+        if (i + 7 < d) {
+            __m256 acc = _mm256_setzero_ps();
+            for (int j = 0; j < n; ++j) {
+                __m256 weights = _mm256_i32gather_ps(w + i * n + j, row_offsets, sizeof(float));
+                __m256 input = _mm256_set1_ps(x[j]);
+                acc = _mm256_add_ps(acc, _mm256_mul_ps(weights, input));
+            }
+            _mm256_storeu_ps(xout + i, acc);
+        } else {
+            // Scalar tail for output dimensions that are not a multiple of 8.
+            for (int row = i; row < d; ++row) {
+                float val = 0.0f;
+                for (int j = 0; j < n; ++j) {
+                    val += w[row * n + j] * x[j];
+                }
+                xout[row] = val;
+            }
+        }
+    }
+#else
     int i;
     #pragma omp parallel for private(i)
     for (i = 0; i < d; i++) {
@@ -226,6 +274,7 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
         }
         xout[i] = val;
     }
+#endif
 }
 
 float* forward(Transformer* transformer, int token, int pos) {

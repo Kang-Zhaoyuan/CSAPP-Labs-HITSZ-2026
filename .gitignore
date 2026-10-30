@@ -37,3 +37,16 @@ Thumbs.db
 
 # Lab 6 large model weights (exceed GitHub file size limits)
 /labs/lab6/stories*.bin
+
+# Lab 6 generated binaries, benchmark tables, and profiling artifacts
+/labs/lab6/run
+/labs/lab6/runq
+/labs/lab6/run-opt
+/labs/lab6/run-trace
+/labs/lab6/run-profile
+/labs/lab6/test-matmul
+/labs/lab6/benchmark_results.csv
+/labs/lab6/perf.unfold
+/labs/lab6/perf.folded
+/labs/lab6/perf.svg
+/labs/lab6/perf.report.txt

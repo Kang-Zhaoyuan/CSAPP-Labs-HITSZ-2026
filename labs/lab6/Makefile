@@ -70,7 +70,31 @@ testcc:
 	$(CC) -DVERBOSITY=$(VERBOSITY) -O3 -o testc test.c -lm
 	./testc
 
+# AVX2 across output rows + OpenMP. No fast-math or FMA is enabled.
+OPT_FLAGS ?= -O3 -mavx2 -fopenmp -ffp-contract=off
+.PHONY: runopt
+runopt: run.c
+	$(CC) $(OPT_FLAGS) -DUSE_AVX2 -o run-opt run.c -lm
+
+# Print each distinct (d, n) matmul shape once at runtime.
+.PHONY: runtrace
+runtrace: run.c
+	$(CC) -O3 -DMATMUL_TRACE -o run-trace run.c -lm
+
+# Profiling build: retain symbols and frame pointers so perf can attribute matmul.
+PROFILE_FLAGS ?= -O3 -g -fno-inline -fno-omit-frame-pointer
+.PHONY: runprofile
+runprofile: run.c
+	$(CC) $(PROFILE_FLAGS) -DMATMUL_TRACE -o run-profile run.c -lm
+
+# Bitwise comparison against the scalar reference for varied sizes and tails.
+.PHONY: testmatmul
+testmatmul: test_matmul.c run.c
+	$(CC) $(OPT_FLAGS) -DUSE_AVX2 -o test-matmul test_matmul.c -lm
+	OMP_NUM_THREADS=4 ./test-matmul
+
 .PHONY: clean
 clean:
 	rm -f run
 	rm -f runq
+	rm -f run-opt run-trace run-profile test-matmul
