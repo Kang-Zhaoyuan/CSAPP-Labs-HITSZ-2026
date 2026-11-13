@@ -48,7 +48,7 @@ def main():
     parser.add_argument("--prompt", default=None, help="optional fixed prompt")
     parser.add_argument("--threads", type=int, default=min(8, os.cpu_count() or 1),
                         help="OpenMP threads for the optimized build")
-    parser.add_argument("--output", default="benchmark_results.csv", help="CSV output path")
+    parser.add_argument("--output", default="build/benchmark_results.csv", help="CSV output path")
     parser.add_argument("--no-build", action="store_true", help="use existing run and run-opt binaries")
     args = parser.parse_args()
 
@@ -108,6 +108,7 @@ def main():
     output = Path(args.output)
     if not output.is_absolute():
         output = HERE / output
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=[
             "model", "repeat", "baseline_tok_s", "optimized_tok_s", "speedup", "output_sha256"
@@ -115,7 +116,7 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    print("\nReport-ready summary (mean of each variant):")
+    print("\nMean throughput:")
     print(f"{'Model':<20} {'Baseline tok/s':>16} {'Optimized tok/s':>17} {'Speedup':>10}")
     for name, base_mean, opt_mean, speedup in summaries:
         print(f"{name:<20} {base_mean:>16.2f} {opt_mean:>17.2f} {speedup:>9.3f}x")

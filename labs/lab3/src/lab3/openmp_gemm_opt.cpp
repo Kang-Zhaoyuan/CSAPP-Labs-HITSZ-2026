@@ -101,7 +101,7 @@ void openmp_gemm_opt(int thread_num, float *C, float *A, float *B, uint64_t M, u
         if (actual_m > 0 && actual_n > 0) {
             float* A_ptr = nullptr;
             if (m_padding == 0 && actual_m == padded_m) {
-                // Direct pointer to A, zero-copy!
+                // Reuse A when this block needs no padding.
                 A_ptr = A + thread_m_start * K;
             } else {
                 float* A_padding = tls_A.get(padded_m * K);
@@ -118,14 +118,12 @@ void openmp_gemm_opt(int thread_num, float *C, float *A, float *B, uint64_t M, u
             float* C_padding = tls_C.get(padded_m * padded_n);
             memset(C_padding, 0, padded_m * padded_n * sizeof(float));
 
-            // Pack B
             for (uint64_t k = 0; k < K; k++) {
                 memcpy(B_padding + k * padded_n,
                        B + thread_n_start + k * N,
                        actual_n * sizeof(float));
             }
 
-            // Pack C
             for (int m = thread_m_start; m < thread_m_end; m++) {
                 memcpy(C_padding + (m - thread_m_start) * padded_n,
                        C + m * N + thread_n_start,
@@ -134,7 +132,6 @@ void openmp_gemm_opt(int thread_num, float *C, float *A, float *B, uint64_t M, u
 
             gemm_kernel_opt_avx(C_padding, A_ptr, B_padding, padded_m, padded_n, K);
 
-            // Unpack C
             for (int m = thread_m_start; m < thread_m_end; m++) {
                 memcpy(C + m * N + thread_n_start,
                        C_padding + (m - thread_m_start) * padded_n,

@@ -53,7 +53,6 @@
 .endm
 
 .macro GEMM_INIT                                   // 初始化
-    // TODO: 将矩阵B的地址存入MAT_B宏对应的寄存器
     mov %rdx, MAT_B
 
     xor loop_m, loop_m
@@ -63,12 +62,11 @@
 
 .macro DO_GEMM                                      // 使用kij遍历方式计算矩阵乘法
 DO_LOOP_K:                                          // 最外层的K维度的循环
-    xor loop_m, loop_m                              // 清空M维度的循环计数器
+    xor loop_m, loop_m
 
 DO_LOOP_M:                                          // M维度的循环
-    xor loop_n, loop_n                              // 清空M维度的循环计数器
+    xor loop_n, loop_n
 
-    // TODO： 加载A[m][k]
     mov loop_m, mat_elem_idx
     imul DIM_K, mat_elem_idx
     add loop_k, mat_elem_idx
@@ -76,7 +74,6 @@ DO_LOOP_M:                                          // M维度的循环
     flds (MAT_A, mat_elem_idx, 4)                   // 加载 A[m][k]到st(0)，flds只能将数据加载到栈顶即st(0), 原st(0)的数据存入st(1)，若栈满则会压栈失败
 
 DO_LOOP_N:
-    // TODO： 加载B[k][n]
     mov loop_k, mat_elem_idx
     imul DIM_N, mat_elem_idx
     add loop_n, mat_elem_idx
@@ -85,7 +82,6 @@ DO_LOOP_N:
 
     fmul %st(1), %st(0)                             // 计算A[m][k] * B[k][n]
 
-    // TODO: 加载C[m][n]
     mov loop_m, mat_elem_idx
     imul DIM_N, mat_elem_idx
     add loop_n, mat_elem_idx
@@ -95,16 +91,16 @@ DO_LOOP_N:
     faddp %st, %st(1)                               // 计算 C[m][n] + A[m][k] * B[k][n]
     fstps (MAT_C, mat_elem_idx, 4)                  // 写回 C[m][n]
 
-    add $1, loop_n                                  // N维度的循环计数器加1
+    add $1, loop_n
     cmp DIM_N, loop_n
     jl DO_LOOP_N
 
     fstp %st(0)                                     // 清空st(0)，此时矩阵A的元素不再使用
-    add $1, loop_m                                  // M维度的循环计数器加1
+    add $1, loop_m
     cmp DIM_M, loop_m
     jl DO_LOOP_M
 
-    add $1, loop_k                                  // K维度的循环计数器加1
+    add $1, loop_k
     cmp DIM_K, loop_k
     jl DO_LOOP_K
 .endm

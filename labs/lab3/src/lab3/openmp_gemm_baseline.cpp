@@ -18,8 +18,7 @@ inline int get_parallel_thread_num(uint64_t M, uint64_t K, uint64_t N, int kerne
 }
 
 void openmp_gemm_baseline(int thread_num, float *C, float *A, float *B, uint64_t M, uint64_t N, uint64_t K){
-    // 定义常量
-    const int KERNEL_MR = 2, KERNEL_NR = 32;    // TODO: 取值请根据AVX内核实际情况修改
+    const int KERNEL_MR = 2, KERNEL_NR = 32;
     int m_thread = 1, n_thread = 1;
     // 计算并行线程
     int real_thread_num = get_parallel_thread_num(M, K, N, KERNEL_MR, KERNEL_NR, thread_num, m_thread, n_thread);

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+cd "$(dirname "$0")"
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
     echo "Usage: $0 <model.bin> [steps]" >&2
@@ -25,11 +26,14 @@ if [[ ! -x "$FLAMEGRAPH_DIR/stackcollapse-perf.pl" || ! -x "$FLAMEGRAPH_DIR/flam
     exit 1
 fi
 
-make runprofile
-perf record -o perf.data -F "$PERF_FREQ" -g -- ./run-profile "$MODEL" -n "$STEPS" -t 0.0 -s 42
-perf script -i perf.data > perf.unfold
-"$FLAMEGRAPH_DIR/stackcollapse-perf.pl" perf.unfold > perf.folded
-"$FLAMEGRAPH_DIR/flamegraph.pl" perf.folded > perf.svg
-perf report -i perf.data --stdio --no-children --sort symbol > perf.report.txt
+output_dir="${PROFILE_OUTPUT_DIR:-build/profile}"
+mkdir -p "$output_dir"
 
-echo "Generated: perf.data, perf.svg, perf.report.txt"
+make runprofile
+perf record -o "$output_dir/perf.data" -F "$PERF_FREQ" -g -- ./run-profile "$MODEL" -n "$STEPS" -t 0.0 -s 42
+perf script -i "$output_dir/perf.data" > "$output_dir/perf.unfold"
+"$FLAMEGRAPH_DIR/stackcollapse-perf.pl" "$output_dir/perf.unfold" > "$output_dir/perf.folded"
+"$FLAMEGRAPH_DIR/flamegraph.pl" "$output_dir/perf.folded" > "$output_dir/perf.svg"
+perf report -i "$output_dir/perf.data" --stdio --no-children --sort symbol > "$output_dir/perf.report.txt"
+
+echo "Profile written to $output_dir"

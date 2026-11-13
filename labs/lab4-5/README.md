@@ -1,9 +1,19 @@
 # CUDA 矩阵乘法
 
-- `matrix_mul_lab4.cu`: 全局内存基线内核（单线程计算单元素）。
-- `matrix_mul_lab5.cu`: 共享内存分块优化内核；宏 `USE_CUBLAS` 切换至 `cublasSgemm`。
-- `compile.sh`: `bash compile.sh [lab4|lab5|cublas] [tile_width]` 生成 `a.out`（可通过环境变量 `CUDA_ARCH=compute_XX` 覆盖目标架构）。
-- `test.sh`: 覆盖非对齐尺寸与边界残差的正确性测试套件。
-- `results/`: 物理机实测日志与性能对比数据，详见 [`results/README.md`](results/README.md)。
+`matrix_mul_lab4.cu` 是全局内存基线；`matrix_mul_lab5.cu` 使用共享内存分块，定义 `USE_CUBLAS` 时调用 `cublasSgemm`。
 
-参数签名：`./a.out <check: 0|1> <matrix_size>`
+```bash
+cd labs/lab4-5
+bash compile.sh lab4 16
+./a.out 1 1000
+bash compile.sh lab5 16
+./a.out 1 1000
+bash compile.sh cublas 16
+./a.out 1 1000
+```
+
+参数为 `./a.out <check: 0|1> <matrix_size>`。通过 `CUDA_ARCH=compute_XX` 指定目标 GPU；默认交给 nvcc 选择。
+
+`bash test.sh` 验证边界尺寸；`bash benchmark.sh` 扫描共享内存与 cuBLAS 配置，输出至 `build/measurements/`。该评测脚本默认 `compute_35`，可通过 `CUDA_ARCH` 覆盖。
+
+[正式数据](results/) · [Lab4 指导书](../../docs/实验4/) · [Lab5 指导书](../../docs/实验5/)

@@ -1,40 +1,21 @@
 # 计算机体系结构实验
 
-哈尔滨工业大学（深圳）计算机体系结构课程实验仓库。
+哈尔滨工业大学（深圳）2026 秋季课程实验。
 
-## 目录结构
+| 实验 | 实现 | 指导书 / 结果 |
+|---|---|---|
+| [Lab1](labs/lab1/) | x87 矩阵乘法、AVX2/FMA | [指导书](docs/实验1/) |
+| [Lab2](labs/lab2/) | 软件预取、循环重排、32×32 分块 | [指导书](docs/实验2/) |
+| [Lab3](labs/lab3/) | 循环展开、AVX 分块、OpenMP | [运行说明](labs/lab3/) · [指导书](docs/实验3/) |
+| [Lab4–5](labs/lab4-5/) | CUDA、共享内存、cuBLAS | [正式数据](labs/lab4-5/results/) · [Lab4 指导书](docs/实验4/) · [Lab5 指导书](docs/实验5/) |
+| [Lab6](labs/lab6/) | Llama AVX2 + OpenMP 推理 | [正式结果](labs/lab6/results/) · [指导书](docs/实验6/) |
 
-```text
-.
-├── labs/
-│   ├── lab1/              # 实验1：x87 浮点矩阵乘法与 AVX2/FMA 向量化
-│   ├── lab2/              # 实验2：Cache 软件预取、循环重排与 32x32 分块
-│   ├── lab3/              # 实验3：x87 循环展开扫描、AVX 64x64 分块与 OpenMP
-│   ├── lab4-5/            # 实验4~5：CUDA 矩阵乘法与 Shared Memory 分块优化
-│   └── lab6/              # 实验6：Llama2 模型推理性能评测与矩阵乘法优化
-└── docs/
-    ├── 00_课程总览/       # 课程大纲、作业提交说明与 x86-64 参考手册
-    ├── 实验1/ ~ 实验6/    # 各实验离线指导书（Markdown / PDF / 配图）
-    ├── templates/         # 官方空白实验报告模板
-    ├── README.md          # 指导书索引
-    └── sync_docs.py       # 指导书与模板增量同步脚本
+Lab1–3 需要 Linux x86-64、GCC/G++、CMake、AVX2/FMA 和 OpenMP。将下列 `lab3` 换成对应实验：
+
+```bash
+cmake -S labs/lab3 -B labs/lab3/build -DCMAKE_BUILD_TYPE=Release
+cmake --build labs/lab3/build --parallel
+ctest --test-dir labs/lab3/build --output-on-failure --no-tests=error
 ```
 
-## 构建说明
-
-- **Lab 1 ~ 3（CPU 优化）**：标准 CMake 工程，需支持 AVX2、FMA 与 OpenMP。
-  ```bash
-  cmake -S labs/<lab> -B labs/<lab>/build -DCMAKE_BUILD_TYPE=Release
-  cmake --build labs/<lab>/build
-  ctest --test-dir labs/<lab>/build --output-on-failure
-  ```
-- **Lab 4 ~ 5（GPU 优化）**：CUDA 矩阵乘法与共享内存优化，详见 [`labs/lab4-5/README.md`](labs/lab4-5/README.md)。
-  ```bash
-  cd labs/lab4-5 && bash compile.sh lab5 16 && ./a.out 1 1000
-  ```
-- **Lab 6（Llama 优化）**：AVX2 + OpenMP 向量化 GEMV，详见 [`labs/lab6/OPTIMIZATION.md`](labs/lab6/OPTIMIZATION.md)。
-  ```bash
-  cd labs/lab6 && make runopt && python3 benchmark.py --runs 3 --steps 256
-  ```
-
-指导书导航详见 [`docs/README.md`](docs/README.md)。
+GPU 与 Llama 的编译、评测入口见各实验说明。正式数据保存在 `results/`，临时评测产物写入忽略的 `build/`。

@@ -1,11 +1,9 @@
-name: Lab2 and Lab3 matrix kernel tests
+name: CPU experiment tests
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    paths:
-      - 'labs/lab2/**'
-      - 'labs/lab3/**'
-      - '.github/workflows/lab2-lab3-tests.yml'
   workflow_dispatch:
 
 jobs:
@@ -14,14 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lab: [lab2, lab3]
+        lab: [lab1, lab2, lab3]
         build_type: [Debug, Release]
     steps:
       - uses: actions/checkout@v4
       - name: Verify CPU vector instructions
-        if: matrix.lab == 'lab3'
+        if: matrix.lab != 'lab2'
         run: |
-          grep -qm1 ' avx ' /proc/cpuinfo
+          grep -qm1 ' avx2 ' /proc/cpuinfo
           grep -qm1 ' fma ' /proc/cpuinfo
       - name: Configure
         run: cmake -S labs/${{ matrix.lab }} -B ${{ runner.temp }}/${{ matrix.lab }}-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -38,3 +36,17 @@ jobs:
           python3 "$GITHUB_WORKSPACE/labs/lab3/tools/plot_unroll.py"
           test -s unroll_sweep.csv
           test -s unroll_sweep.svg
+
+  llama:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build scalar and optimized inference; verify bitwise matmul
+        working-directory: labs/lab6
+        run: make run runopt testmatmul
+      - name: Check evaluation scripts
+        run: |
+          python3 labs/lab6/benchmark.py --help
+          for script in labs/lab6/profile.sh labs/lab4-5/{benchmark,test,compile}.sh; do
+            bash -n "$script"
+          done

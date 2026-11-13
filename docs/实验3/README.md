@@ -1,23 +1,18 @@
-# 计算机体系结构实验 - 实验3指导书汇总
-
-> 本文档为实验3所有章节的 1:1 完整汇总转译版，供离线阅读与后续 Agent 查阅。
-
-## 目录导航
-
-- [实验3：使用指令级并行、向量指令和并行优化矩阵乘法](./00_实验概述.md)
-- [实验原理](./01_实验原理.md)
-- [练习1：基于x87 FPU优化矩阵乘法性能](./02_练习1.md)
-- [练习2：基于AVX指令设计并实现高性能矩阵乘法计算内核](./03_练习2.md)
-- [练习3 (选做)：基于OpenMP库和练习2实现的高性能计算内核实现任意形状的矩阵乘法计算](./04_练习3.md)
-- [实验报告要求](./05_实验报告要求.md)
-- [预习下一个实验](./06_预习下一个实验.md)
-
----
-
-<!-- Section: 00_实验概述.md -->
 # 实验3：使用指令级并行、向量指令和并行优化矩阵乘法
 
-## 实验目的
+- [实验概述](#chapter-00)
+- [实验原理](#chapter-01)
+- [练习1：基于x87 FPU优化矩阵乘法性能](#chapter-02)
+- [练习2：基于AVX指令设计并实现高性能矩阵乘法计算内核](#chapter-03)
+- [练习3 (选做)：基于OpenMP库和练习2实现的高性能计算内核实现任意形状的矩阵乘法计算](#chapter-04)
+- [实验报告要求](#chapter-05)
+- [预习下一个实验](#chapter-06)
+
+<a id="chapter-00"></a>
+
+## 实验概述
+
+### 实验目的
 
   1. 理解计算机系统的指令级并行性；
 
@@ -25,7 +20,7 @@
 
   3. 掌握利用指令级并行、向量指令和多线程技术进一步发掘处理器并行性能的方法。
 
-## 实验前准备
+### 实验前准备
 
   阅读下述论文材料了解设计高性能矩阵乘法计算内核的基本原则和Intel处理器的特性。
 
@@ -34,7 +29,7 @@
 
   实验环境：一台安装了`cmake`、`gcc`、`gdb`和`perf`环境且系统为ubuntu x64的计算机。
 
-## 实验内容
+### 实验内容
 
   1. 利用处理器的FPU，结合循环展开提升矩阵乘法性能；
 
@@ -42,13 +37,11 @@
 
   3. 基于OpenMP库实现任意形状的矩阵乘法计算。
 
+<a id="chapter-01"></a>
 
----
+## 实验原理
 
-<!-- Section: 01_实验原理.md -->
-# 实验原理
-
-## 数据并行
+### 数据并行
 
   向量指令能够加速的原理主要基于 SIMD（单指令多数据）技术。SIMD 允许单条 CPU 指令同时对多个数据执行操作，这样可以显著提高处理大量数据时的效率。
 
@@ -64,15 +57,15 @@
 
   利用数据并行实现加速的常用方法包括循环展开、使用向量指令，以及使用基于共享内存实现多线程并行编程的 OpenMP 库。
 
-### 1. 循环展开
+#### 1. 循环展开
 
   为了充分发挥流水线 CPU 的性能，必须尽量减少流水线停顿，使其满负荷运行。因此，需要充分开发指令之间存在的并行性，找出不相关的指令序列，使其在流水线中重叠执行。
 
   循环展开（Loop Unrolling）是指将循环体的代码复制多次并按顺序排放，然后相应调整循环结束的条件。循环展开能够挖掘循环的不同迭代之间存在的并行性 —— 原本多个迭代的循环体代码能够在循环展开后被合并起来，给编译器和处理器提供更大的调度和优化空间。此外，循环展开后，循环次数成倍减少，从而分支指令和循环控制的开销也随之降低。
 
-### 2. AVX指令
+#### 2. AVX指令
 
-[MMX（MultiMedia eXtension）](https://www.intel.com/content/dam/www/public/us/en/documents/research/1997-vol01-iss-3-intel-technology-journal.pdf)、[SSE（Streaming SIMD Extension）](https://www.intel.com/content/dam/develop/external/us/en/documents/d9156103-705230.pdf)和 [AVX（Advanced Vector eXtensions）](https://www.intel.com/content/www/us/en/developer/technical-library/overview.html?f:@stm_10309_en=%5BIntel%C2%AE%20Technologies%3BIntel%C2%AE%20Data%20Center%20Technologies%3BIntel%C2%AE%20Advanced%20Vector%20Extensions%20(Intel%C2%AE%20AVX)%5D)都是 Intel 处理器的 SIMD 指令集。其中，AVX 在 MMX 和 SSE 指令集的基础上，将128位的 SIMD 寄存器扩展至256位及以上，并且增加了对非结构化操作以及3操作数甚至4操作数的支持，提升了指令的灵活性和功能性。此外，AVX 指令集支持融合的乘加指令 FMAdd（Fused-Multiply-Add），能够通过单条指令实现形如  的乘加运算。
+[MMX（MultiMedia eXtension）](https://www.intel.com/content/dam/www/public/us/en/documents/research/1997-vol01-iss-3-intel-technology-journal.pdf)、[SSE（Streaming SIMD Extension）](https://www.intel.com/content/dam/develop/external/us/en/documents/d9156103-705230.pdf)和 [AVX（Advanced Vector eXtensions）](https://www.intel.com/content/www/us/en/developer/technical-library/overview.html?f:@stm_10309_en=%5BIntel%C2%AE%20Technologies%3BIntel%C2%AE%20Data%20Center%20Technologies%3BIntel%C2%AE%20Advanced%20Vector%20Extensions%20(Intel%C2%AE%20AVX)%5D)都是 Intel 处理器的 SIMD 指令集。其中，AVX 在 MMX 和 SSE 指令集的基础上，将128位的 SIMD 寄存器扩展至256位及以上，并且增加了对非结构化操作以及3操作数甚至4操作数的支持，提升了指令的灵活性和功能性。本实验同时使用 FMA 扩展的融合乘加指令，能够通过单条指令实现形如 $a \times b + c$ 的乘加运算。
 
   AVX 具有16个256位的向量寄存器 YMM0 ~ YMM15。一个 AVX 寄存器能够存储8个32位单精度浮点数（或4个64位双精度浮点数），存储单个数据的字段称为向量寄存器的单元或元素（Element），如图2-1所示。
 
@@ -86,11 +79,12 @@
 表2-1 AVX 常用指令
 
 | 指令 | 说明 | 使用示例 |
-| `vbroadcastss` `vbroadcastsd` `vbroadcastf128` | 从内存加载一个 32位 / 64位 / 128位 的操作数，并将其广播到向量寄存器的每个单元中 | `vbroadcastss (%rax), %ymm0` 设`d=MEM[%rax]`，则指令执行后，`ymm0`寄存器为： |
+|---|---|---|
+| `vbroadcastss` `vbroadcastsd` `vbroadcastf128` | 从内存加载一个 32位 / 64位 / 128位 的操作数，并将其广播到向量寄存器的每个单元中 | `vbroadcastss (%rax), %ymm0` 设`d=MEM[%rax]`，则指令执行后，`ymm0` 的 8 个单精度单元均为 `d` |
 | `vmovups` `vmovdqu` `vmovapd` | 在内存和AVX寄存器之间移动 未对齐的单精度 / 未对齐的双精度 / 对齐的双精度 浮点数 | `vmovups %ymm0, (%rax)` 将`ymm0`寄存器中的8个float浮点数存储到`MEM[%rax]` |
-| `vfmadd231ps` `vaddps` `vsubps` `vmulps` `vdivps` `vsqrtps` | 执行256位的 乘加 / 加 / 减 / 乘 / 除 / 开平方 运算，指令后缀的`s`表示操作数类型是单精度浮点 | `vfmadd231ps %ymm0, %ymm1, %ymm2` 计算`ymm2 += ymm0 * ymm1`，且对向量寄存器的每个单元，均有`ymm2[i] += ymm0[i] * ymm1[i]` |
+| `vfmadd231ps` `vaddps` `vsubps` `vmulps` `vdivps` `vsqrtps` | 执行256位的 乘加 / 加 / 减 / 乘 / 除 / 开平方 运算，后缀 `ps` 表示并行单精度浮点运算 | `vfmadd231ps %ymm0, %ymm1, %ymm2` 计算`ymm2 += ymm0 * ymm1`，且对向量寄存器的每个单元，均有`ymm2[i] += ymm0[i] * ymm1[i]` |
 
-### 3. OpenMP
+#### 3. OpenMP
 
   OpenMP（Open specifications for Multi Processing）是一个支持以共享内存方式实现多线程并行处理的编程库。OpenMP提供嵌入到高级语言的编译指令/原语，从而将串行代码并行化。OpenMP支持不同粒度的并行化。此外，OpenMP简化了线程的使用，不需要开发者自行考虑线程的创建、同步、负载均衡等操作。
 
@@ -144,7 +138,7 @@ for (int i = 0; i < N; i++)  // 若干个线程并行执行循环体
 }
 ```
 
-- 线程同步（**`barrier`**、**`critical`**、**`atom`**）
+- 线程同步（**`barrier`**、**`critical`**、**`atomic`**）
 
 ```
 #pragma omp parallel
@@ -166,60 +160,58 @@ for (int i = 0; i < N; i++)
 }
 ```
 
-  若`critical`下的代码块内只有一条语句，可改用开销更低的`atom`：
+  若`critical`下的代码块内只有一条语句，可改用开销更低的`atomic`：
 
 ```
 #pragma omp parallel for
 for (int i = 0; i < N; i++)
 {
-    #pragma omp atom
+    #pragma omp atomic
     cnt++;    // 同一时刻只有一个线程执行此代码
 }
 ```
 
+<a id="chapter-02"></a>
 
----
-
-<!-- Section: 02_练习1.md -->
-# 练习1：基于x87 FPU优化矩阵乘法性能
+## 练习1：基于x87 FPU优化矩阵乘法性能
 
 - **任务**：利用处理器中的x87 FPU（浮点计算单元）中更多的寄存器对矩阵乘法计算的循环进行展开以提升性能。
 - **子任务**：
 
   - 使用`FLD`、`FSTP`等指令操作数据的读取与存储；
   - 使用`FMUL`、`FADDP`等x87 FPU提供的指令进行计算；
-  - 以2为步进对  维度的循环进行展开（可参考`src/lab3/gemm_kernel_baseline.S`中的 `DO_LOOP_N` 逻辑）
+  - 以2为步进对 N 维度的循环进行展开（可参考`src/lab3/gemm_kernel_baseline.S`中的 `DO_LOOP_N` 逻辑）
 - **目标**：学会利用计算单元的特性进行循环展开。
 
 > [!TIP] **关于浮点指令**
 >
-> 本实验涉及x87 FPU的通用寄存器栈以及`FLD`、`FSTP`、`FMUL`、`FADDP`等常用指令，相关内容可自行回顾[实验1 - 实验原理 - 第3节 x87 FPU](../实验1/01_实验原理.md)。
+> 本实验涉及x87 FPU的通用寄存器栈以及`FLD`、`FSTP`、`FMUL`、`FADDP`等常用指令，相关内容可自行回顾[实验1 - 实验原理 - 第3节 x87 FPU](../实验1/README.md#chapter-01)。
 
-#### 0. 下载并解压实验包
+### 0. 下载并解压实验包
 
-  从[首页链接](../00_课程总览/00_课程概况.md)下载`lab3.tar.gz`，将其拷贝至用户目录，并执行命令`tar -zxvf lab3.tar.gz`解压实验包。
+  从[首页链接](../README.md)下载`lab3.tar.gz`，将其拷贝至用户目录，并执行命令`tar -zxvf lab3.tar.gz`解压实验包。
 
-#### 1. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第83行添加计算`A[m][k]*B[k][n+1]->st(0)`的逻辑
+### 1. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第83行添加计算`A[m][k]*B[k][n+1]->st(0)`的逻辑
 
 ![](./assets/3-1-1.png)
 
-#### 2. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第91行添加加载`C[m][n]->st(1)`和加载 `C[m][n+1]->st(0)`的逻辑
+### 2. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第91行添加加载`C[m][n]->st(1)`和加载 `C[m][n+1]->st(0)`的逻辑
 
 ![](./assets/3-1-2.png)
 
-#### 3. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第93行添加部分和累加逻辑: `C[m][n+1] + A[m][k] * B[k][n+1]` 和 `C[m][n] + A[m][k] * B[k][n]`
+### 3. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第93行添加部分和累加逻辑: `C[m][n+1] + A[m][k] * B[k][n+1]` 和 `C[m][n] + A[m][k] * B[k][n]`
 
 ![](./assets/3-1-3.png)
 
-#### 4. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第97行添加保存`C[m][n]`的逻辑
+### 4. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第97行添加保存`C[m][n]`的逻辑
 
 ![](./assets/3-1-4.png)
 
-#### 5. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第99行添加N维度的循环更新逻辑
+### 5. 在`src/lab3/gemm_kernel_opt_loop_unrolling.S`第99行添加N维度的循环更新逻辑
 
 ![](./assets/3-1-5.png)
 
-#### 6. 验证循环展开方案的正确性
+### 6. 验证循环展开方案的正确性
 
 ```
 # 项目根目录下执行
@@ -230,7 +222,7 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_loop_unrolling.unit
 
 ![](./assets/3-1-6.png)
 
-#### 7. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据对比结果分析优化方案的局限性
+### 7. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据对比结果分析优化方案的局限性
 
 ```
 # build目录下执行
@@ -240,55 +232,52 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_loop_unrolling
 
 ![](./assets/3-1-7.png)
 
-#### 8. 测试并对比不同循环展开度的性能差异
+### 8. 测试并对比不同循环展开度的性能差异
 
   循环展开度指的是在每轮循环中，原始循环体被重复执行的次数。
 
   测试不同循环展开度（比如0（即无循环展开）、2、4等）的性能差异，绘制性能变化曲线图并进行合理分析。
 
+<a id="chapter-03"></a>
 
----
-
-<!-- Section: 03_练习2.md -->
-# 练习2：基于AVX指令设计并实现高性能矩阵乘法计算内核
+## 练习2：基于AVX指令设计并实现高性能矩阵乘法计算内核
 
 - **任务**：利用AVX指令实现性能更好的矩阵乘法计算内核。
 - **子任务**：
 
-  - 计算内核  矩阵（）的元素个数不少于64，即 ；
-  - 计算内核各维度必须满足如下要求: ，，；
+  - 计算内核的输出分块至少包含 64 个元素；
   - 计算内核采用流水线设计读取、计算、写回等过程。
 - **目标**：学会利用向量指令实现计算性能更高的矩阵乘法计算单元。
 
-#### 0. 模板代码`src/lab3/gemm_kernel_opt_avx.S`的实现思路
+### 0. 模板代码`src/lab3/gemm_kernel_opt_avx.S`的实现思路
 
   模板代码`src/lab3/gemm_kernel_opt_avx.S`采用如下图所示的矩阵分块算法：
 
 ![](./assets/3-2-0.png)
 
-  最内层循环每次使用  的`A[m:m+2][k]`分块和  的`B[k][n:n+32]`分块计算出  的`C[m:m+2][n:n+32]`分块。最内层的分块矩阵乘法采用 AVX 向量指令实现并行计算。
+  最内层循环每次使用 2×1 的 `A[m:m+2][k]` 和 1×32 的 `B[k][n:n+32]`，更新 2×32 的 `C[m:m+2][n:n+32]`。最内层的分块矩阵乘法采用 AVX 向量指令实现并行计算。
 
-#### 1. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_C`过程（第110行、第117行）添加加载`C[m:m+2][n:n+32]`到AVX寄存器的逻辑
+### 1. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_C`过程（第110行、第117行）添加加载`C[m:m+2][n:n+32]`到AVX寄存器的逻辑
 
 ![](./assets/3-2-1.png)
 
-#### 2. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_A`过程（第90行）添加加载`A[m+1][k]`到AVX寄存器的逻辑
+### 2. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_A`过程添加加载`A[m+1][k]`到AVX寄存器的逻辑
 
 ![](./assets/3-2-2.png)
 
-#### 3. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_B`过程（第96行）添加加载`B[k][n:n+32]`到AVX寄存器的逻辑
+### 3. 为`src/lab3/gemm_kernel_opt_avx.S`的`LOAD_MAT_B`过程添加加载`B[k][n:n+32]`到AVX寄存器的逻辑
 
 ![](./assets/3-2-3.png)
 
-#### 4. 为`src/lab3/gemm_kernel_opt_avx.S`的`DO_COMPUTE`过程（第141行）添加计算`C[m:m+2][n:n+32]+=A[m:m+2][k]*B[k:k+8][n:n+32]`的逻辑
+### 4. 为`src/lab3/gemm_kernel_opt_avx.S`的`DO_COMPUTE`过程添加计算`C[m:m+2][n:n+32]+=A[m:m+2][k]*B[k:k+8][n:n+32]`的逻辑
 
 ![](./assets/3-2-4.png)
 
-#### 5. 为`src/lab3/gemm_kernel_opt_avx.S`的`STORE_MAT_C`过程（第132行、第135行）添加保存`C[m][n:n+32]`和`C[m+1][n:n+32]`的逻辑
+### 5. 为`src/lab3/gemm_kernel_opt_avx.S`的`STORE_MAT_C`过程（第132行、第135行）添加保存`C[m][n:n+32]`和`C[m+1][n:n+32]`的逻辑
 
 ![](./assets/3-2-5.png)
 
-#### 6. 验证新内核的正确性
+### 6. 验证新内核的正确性
 
 ```
 # build目录下执行
@@ -298,7 +287,7 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_avx.unittest
 
 ![](./assets/3-2-6.png)
 
-#### 7. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据算法和结果分析优化方案的优缺点。
+### 7. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据算法和结果分析优化方案的优缺点。
 
 ```
 # build目录下执行
@@ -308,20 +297,18 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_avx
 
 ![](./assets/3-2-7.png)
 
-#### 8. 测试并对比新内核在不同数据规模下的性能差异
+### 8. 测试并对比新内核在不同数据规模下的性能差异
 
   改变输入矩阵的数据规模（比如边长为32、64、128等），测试AVX矩阵乘法内核的性能数据，绘制性能变化曲线图并进行合理分析。
 
+<a id="chapter-04"></a>
 
----
-
-<!-- Section: 04_练习3.md -->
-# 练习3 (选做)：基于OpenMP库和练习2实现的高性能计算内核实现任意形状的矩阵乘法计算
+## 练习3 (选做)：基于OpenMP库和练习2实现的高性能计算内核实现任意形状的矩阵乘法计算
 
 - **任务**：利用OpenMP库将练习2实现的单线程高性能矩阵乘法内核扩展到多核以实现计算更大规模的矩阵乘法的目标。
 - **子任务**：
 
-  - 矩阵乘法能够利用多线程实现对 ，，形状的计算；
+  - 矩阵乘法支持任意正整数 M、K、N；
   - 切分后不满足练习2内核要求大小的数据块允许采用Padding或另行设计内核的方式进行计算；
   - 自行设计各个维度的并行策略但线程总数不能超过函数参数中指定的线程总数；
   - 计算性能需超过基线。
@@ -331,7 +318,7 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_avx
 >
 > 本练习的并行优化策略属于开放性内容，没有严格意义上的最优方案。
 
-#### 0. 模板代码`src/lab3/openmp_gemm_baseline.cpp`的实现思路
+### 0. 模板代码`src/lab3/openmp_gemm_baseline.cpp`的实现思路
 
   模板代码`src/lab3/openmp_gemm_baseline.cpp`采用如下图所示的多线程矩阵分块算法：
 
@@ -359,11 +346,11 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_avx
 
   第87行~第95行调用练习2的`gemm_kernel_opt_avx`内核计算分块矩阵乘法，并将计算结果保存回原始矩阵`C`。
 
-#### 1. 按子任务要求，参考`src/lab3/openmp_gemm_baseline.cpp`，利用OpenMP库设计基于多核的支持更大规模的矩阵乘法计算的算法，并将逻辑填入`src/lab3/openmp_gemm_opt.cpp`指定位置（第7行）
+### 1. 按子任务要求，参考`src/lab3/openmp_gemm_baseline.cpp`，利用OpenMP库设计基于多核的支持更大规模的矩阵乘法计算的算法，并将逻辑填入`src/lab3/openmp_gemm_opt.cpp`指定位置
 
 ![](./assets/3-3-1.png)
 
-#### 2. 验证新算法的正确性
+### 2. 验证新算法的正确性
 
 ```
 # build目录下执行
@@ -373,7 +360,7 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_openmp.unittest
 
 ![](./assets/3-3-2.png)
 
-#### 3. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据算法和结果分析优化方案的优缺点
+### 3. 对比优化后的算法与基线的性能（测试用例根据自己的优化选择），根据算法和结果分析优化方案的优缺点
 
 ```
 # build目录下执行
@@ -387,13 +374,11 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_openmp
 >
 > 以上截图中的性能对比双方均为未优化的 baseline 方案，此处仅作为实验过程的示例和参考。同学们进行此步骤时应使用步骤1实现的优化后的 `openmp_gemm_opt.cpp` 与 baseline 进行对比。
 
+<a id="chapter-05"></a>
 
----
+## 实验报告要求
 
-<!-- Section: 05_实验报告要求.md -->
-# 实验报告要求
-
-  完成实验1 ~ 实验3，点击下载[实验报告模板](../templates/1 CPU优化专题（实验1~3）报告模板.docx)，按以下要求撰写实验报告。
+按以下要求撰写实验报告：
 
 1. 实现流程（完整包含实验1~3的练习；结合关键代码/原理图以文字形式表述）；
 2. 测试结果及原理分析（结合测试结果截图、测试数据表、文字等，对比分析Cache优化和数据并行优化的效果并描述相关原理）。
@@ -415,15 +400,10 @@ cmake -B . -S ../ && cmake --build ./ --target lab3_gemm_opt_openmp
 
   提交截止时间以作业系统为准。截止后有补交通道，但会扣迟交分。
 
+<a id="chapter-06"></a>
 
----
-
-<!-- Section: 06_预习下一个实验.md -->
-# 预习下一个实验
+## 预习下一个实验
 
   阅读以下材料，了解CUDA编程的基本原理及GPU架构的特性，以实现高效的矩阵乘法计算。
 
 - 《CUDA C Programming Guide》
-
-
----

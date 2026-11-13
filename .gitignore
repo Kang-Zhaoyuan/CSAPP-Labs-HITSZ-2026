@@ -29,7 +29,7 @@ Thumbs.db
 *.zip
 *.tar.gz
 
-# Local-only workspace directories & documentation (excluded from GitHub)
+# Local workspace
 /README_LOCAL.md
 /docker/
 /Textbook/
@@ -51,3 +51,10 @@ Thumbs.db
 /labs/lab6/perf.svg
 /labs/lab6/perf.report.txt
 /labs/lab6/matmul_shapes.log
+
+# Generated logs and profiling intermediates
+*.log
+*.unfold
+*.folded
+perf*.data*
+desktop.ini

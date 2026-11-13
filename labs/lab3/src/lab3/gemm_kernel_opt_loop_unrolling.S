@@ -88,7 +88,6 @@ DO_LOOP_N:
     flds (MAT_B, mat_elem_idx, 4)     // 加载 B[k][n]
     fmul %st(1), %st(0)                 // 计算A[m][k] * B[k][n]  --> st(0)
 
-    // TODO  练习1: 添加计算A[m][k] * B[k][n+1] --> st(0)的逻辑
     add $1, mat_elem_idx
     flds (MAT_B, mat_elem_idx, 4)     // 加载 B[k][n+1] --> st(0)
     fmul %st(2), %st(0)               // 计算A[m][k] * B[k][n+1] --> st(0)
@@ -98,22 +97,18 @@ DO_LOOP_N:
     mov %rax, mat_elem_idx
     add loop_n, mat_elem_idx                    // 计算 m*N+n
 
-    // TODO 练习1: 请添加加载C[m][n] --> st(1) 和 C[m][n+1] --> st(0)的逻辑
     flds (MAT_C, mat_elem_idx, 4)     // 加载 C[m][n] --> st(0)
     add $1, mat_elem_idx
     flds (MAT_C, mat_elem_idx, 4)     // 加载 C[m][n+1] --> st(0), C[m][n] 移至 st(1)
 
-    // TODO 练习1: 请添加部分和累加逻辑: C[m][n+1] + A[m][k] * B[k][n+1] 和 C[m][n] + A[m][k] * B[k][n]
     faddp %st, %st(2)                 // 累加 C[m][n+1] + A[m][k]*B[k][n+1]
     faddp %st, %st(2)                 // 累加 C[m][n] + A[m][k]*B[k][n]
 
     fstps (MAT_C, mat_elem_idx, 4)      // 保存C[m][n+1]
 
-    // TODO 练习1: 请添加保存C[m][n]的逻辑
     sub $1, mat_elem_idx
     fstps (MAT_C, mat_elem_idx, 4)      // 保存C[m][n]
 
-    // TODO 练习1: 请添加N维度的循环更新逻辑
     add $2, loop_n
 
     jmp DO_LOOP_N

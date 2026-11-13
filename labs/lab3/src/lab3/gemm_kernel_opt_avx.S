@@ -83,11 +83,10 @@
 
     // 计算A[m][k]的字节地址
     mov temp_reg, mat_elem_idx
-    shl $2, mat_elem_idx        // 左移，相当于乘4
+    shl $2, mat_elem_idx
 
     vbroadcastss (MAT_A, mat_elem_idx), mat_a0_0_8    // 将A[m][k]广播到AVX寄存器的8个单元
 
-    // TODO 练习3: 请添加加载并广播A[m+1][k]-->mat_a1_0_8的逻辑
     mov temp_reg, mat_elem_idx
     add DIM_K, mat_elem_idx
     shl $2, mat_elem_idx
@@ -97,7 +96,6 @@
 
 .macro LOAD_MAT_B    // 每次装载矩阵B一行32个元素, 即B[k][n:n+32]
 
-    // TODO 练习3: 请添加加载B[k][n:n+32]-->mat_b0_0_8, mat_b0_8_16, mat_b0_16_24, mat_b0_24_32的逻辑
     mov loop_k, %rax
     mul DIM_N
     mov %rax, temp_reg
@@ -120,9 +118,8 @@
 
     // 装载矩阵C第一行的数据, 即C[m][n:n+32]
     mov temp_reg, mat_elem_idx
-    shl $2, mat_elem_idx        // 左移，相当于乘4
+    shl $2, mat_elem_idx
 
-    // TODO 练习3: 请添加加载C[m][n:n+32]-->mat_c0_0_8, mat_c0_8_16, mat_c0_16_24, mat_c0_24_32的逻辑
     vmovups (MAT_C, mat_elem_idx), mat_c0_0_8
     vmovups 32(MAT_C, mat_elem_idx), mat_c0_8_16
     vmovups 64(MAT_C, mat_elem_idx), mat_c0_16_24
@@ -131,9 +128,8 @@
     // 装载矩阵C第二行的数据, 即C[m+1][n:n+32]
     mov temp_reg, mat_elem_idx
     add DIM_N, mat_elem_idx
-    shl $2, mat_elem_idx        // 左移，相当于乘4
+    shl $2, mat_elem_idx
 
-    // TODO 练习3: 请添加加载C[m+1][n:n+32]-->mat_c1_0_8, mat_c1_8_16, mat_c1_16_24, mat_c1_24_32的逻辑
     vmovups (MAT_C, mat_elem_idx), mat_c1_0_8
     vmovups 32(MAT_C, mat_elem_idx), mat_c1_8_16
     vmovups 64(MAT_C, mat_elem_idx), mat_c1_16_24
@@ -150,16 +146,14 @@
 
     // 保存矩阵C第一行的数据, 即C[m][n:n+32]
     mov temp_reg, mat_elem_idx
-    shl $2, mat_elem_idx        // 左移，相当于乘4
+    shl $2, mat_elem_idx
 
-    // TODO 练习3: 请添加保存mat_c0_0_8, mat_c0_8_16, mat_c0_16_24, mat_c0_24_32 --> C[m][n:n+32]的逻辑
     vmovups mat_c0_0_8, (MAT_C, mat_elem_idx)
     vmovups mat_c0_8_16, 32(MAT_C, mat_elem_idx)
     vmovups mat_c0_16_24, 64(MAT_C, mat_elem_idx)
     vmovups mat_c0_24_32, 96(MAT_C, mat_elem_idx)
 
     // 保存矩阵C第二行的数据, 即C[m+1][n:n+32]
-    // TODO 练习3: 请添加保存mat_c1_0_8, mat_c1_8_16, mat_c1_16_24, mat_c1_24_32 --> C[m+1][n:n+32]的逻辑
     mov temp_reg, mat_elem_idx
     add DIM_N, mat_elem_idx
     shl $2, mat_elem_idx
@@ -173,7 +167,6 @@
 
 .macro DO_COMPUTE      // 计算 C[m:m+2][n:n+32] += A[m:m+2][k] * B[k:k+8][n:n+32]
 
-    // TODO 练习3: 请添加计算C[m:m+2][n:n+32] += A[m:m+2][k] * B[k:k+8][n:n+32]的逻辑
     vfmadd231ps mat_b0_0_8, mat_a0_0_8, mat_c0_0_8
     vfmadd231ps mat_b0_8_16, mat_a0_0_8, mat_c0_8_16
     vfmadd231ps mat_b0_16_24, mat_a0_0_8, mat_c0_16_24
@@ -251,4 +244,4 @@ gemm_kernel_opt_avx:
     vzeroupper
     ret
 
-.section .note.GNU-stack,"",@progbits
+.section .note.GNU-stack,"",@progbits

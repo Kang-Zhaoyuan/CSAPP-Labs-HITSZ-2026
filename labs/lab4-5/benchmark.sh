@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
-export CUDA_ARCH=compute_35
+cd "$(dirname "$0")"
+export CUDA_ARCH="${CUDA_ARCH:-compute_35}"
 
-mkdir -p results
+output_dir="${RESULTS_DIR:-build/measurements}"
+mkdir -p "$output_dir"
 
-CORR=results/lab5_correctness.log
-PERF=results/lab5_performance.log
+CORR="$output_dir/lab5_correctness.log"
+PERF="$output_dir/lab5_performance.log"
 
 : > "$CORR"
 : > "$PERF"
